@@ -1,0 +1,19 @@
+{
+  "name": "greenfestival-functions",
+  "private": true,
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "scripts": {
+    "lint": "echo \"No lint configured\"",
+    "reset:firestore": "node scripts/resetFirestore.js",
+    "seed:categories": "node scripts/seedCategoriesSetup.js",
+    "migrate:seed-data": "node scripts/migrateSeedData.js",
+    "deploy": "firebase deploy --only functions --project greenfestival-5320b"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.8.0",
+    "firebase-functions": "^7.2.5"
+  }
+}

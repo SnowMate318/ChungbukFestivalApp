@@ -1,0 +1,52 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "greenfestival-5320b",
+          "appId": "1:434235003699:android:1c93fbbe4ee4fec9aa6446",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "greenfestival-5320b",
+          "configurations": {
+            "android": "1:434235003699:android:1c93fbbe4ee4fec9aa6446",
+            "ios": "1:434235003699:ios:df50ae42a902bcebaa6446",
+            "macos": "1:434235003699:ios:df50ae42a902bcebaa6446",
+            "web": "1:434235003699:web:a8ba1c6bb78e92cbaa6446",
+            "windows": "1:434235003699:web:3d68387c68b7e576aa6446"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

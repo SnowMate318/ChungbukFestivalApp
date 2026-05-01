@@ -1,0 +1,39 @@
+name: greenfestival
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  cloud_firestore: ^6.3.0
+  cupertino_icons: ^1.0.9
+  firebase_core: ^4.7.0
+  flutter:
+    sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
+  flutter_screenutil: ^5.9.3
+  get: ^4.7.3
+  image: ^4.5.4
+  intl: ^0.20.2
+  pdf: ^3.11.3
+  printing: ^5.14.2
+  qr: ^3.0.2
+  qr_code_scanner_plus: ^2.1.1
+  window_manager: ^0.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  googleapis_auth: ^2.3.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/pictures/
+    - assets/fonts/
+    - assets/display/

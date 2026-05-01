@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "434235003699",
+    "project_id": "greenfestival-5320b",
+    "storage_bucket": "greenfestival-5320b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:434235003699:android:1c93fbbe4ee4fec9aa6446",
+        "android_client_info": {
+          "package_name": "com.example.chung_festival_kiosk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDP88ik7zsBq3LHyISEn_akif2qiOukyYg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
