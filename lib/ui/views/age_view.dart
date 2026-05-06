@@ -47,7 +47,7 @@ class _AgeViewState extends State<AgeView> {
     _surveyController.setAge(age);
 
     _navigationTimer?.cancel();
-    _navigationTimer = Timer(const Duration(seconds: 1), () {
+    _navigationTimer = Timer(const Duration(milliseconds: 200), () {
       if (!mounted) return;
       Get.toNamed(AppPages.PARTICIPANT_COUNT);
     });

@@ -63,7 +63,7 @@ class _ParticipantCountViewState extends State<ParticipantCountView> {
     _surveyController.setParticipantCount(count);
 
     _navigationTimer?.cancel();
-    _navigationTimer = Timer(const Duration(seconds: 1), () {
+    _navigationTimer = Timer(const Duration(milliseconds: 200), () {
       if (!mounted) return;
       Get.toNamed(AppPages.RESIDENCE);
     });

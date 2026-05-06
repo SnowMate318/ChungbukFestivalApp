@@ -24,6 +24,10 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
   void initState() {
     super.initState();
     _phoneDigits = _digitsOnly(_surveyController.phoneNumber.value);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _openKeypad();
+    });
   }
 
   String get _formattedPhoneNumber => _formatPhoneNumber(_phoneDigits);

@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:greenfestival/data/models/festival_admin_models.dart';
 import 'package:greenfestival/services/festival_firestore_service.dart';
 
+import 'display_live_video_background_stub.dart'
+    if (dart.library.html) 'display_live_video_background_web.dart';
+
 class DisplayLiveView extends StatelessWidget {
   const DisplayLiveView({super.key});
 
@@ -11,43 +14,80 @@ class DisplayLiveView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return _DisplayLiveSurface(service: _service);
+  }
+}
+
+class _DisplayLiveSurface extends StatelessWidget {
+  const _DisplayLiveSurface({required this.service});
+
+  final FestivalFirestoreService service;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<HighlightedUser?>(
+      stream: service.watchHighlightedUser(),
+      builder: (context, userSnapshot) {
+        final highlightedUser = userSnapshot.data;
+        return StreamBuilder<int>(
+          stream: service.watchTotalSeedCount(),
+          builder: (context, totalSnapshot) {
+            final totalSeedCount = math.max(0, totalSnapshot.data ?? 0);
+            return _DisplayLiveScene(
+              user: highlightedUser,
+              totalSeedCount: totalSeedCount,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _DisplayLiveScene extends StatelessWidget {
+  const _DisplayLiveScene({required this.user, required this.totalSeedCount});
+
+  final HighlightedUser? user;
+  final int totalSeedCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final personalSeedCount = math.max(0, user?.seedCount ?? 0);
+    final sky = _skyProfile(personalSeedCount);
+    final restartKey = '${sky.asset}-${user?.nickname ?? 'empty'}';
+
     return Scaffold(
+      backgroundColor: const Color(0xFFEAF6F3),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
           final height = constraints.maxHeight;
+          final wide = width >= 980 && height >= 620;
+
           return Stack(
             fit: StackFit.expand,
             children: [
-              Image.asset(
-                'assets/display/background.png',
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.high,
+              DisplayLiveVideoBackground(
+                asset: sky.asset,
+                restartKey: restartKey,
               ),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.white.withValues(alpha: 0.10),
-                      Colors.white.withValues(alpha: 0.42),
-                      Colors.white.withValues(alpha: 0.68),
-                    ],
-                    stops: const [0, 0.58, 1],
-                  ),
-                ),
+              const DecoratedBox(
+                decoration: BoxDecoration(color: Color(0x18FFFFFF)),
               ),
               SafeArea(
-                child: SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: height),
-                    child: Padding(
-                      padding: EdgeInsets.all((width * 0.018).clamp(12, 30)),
-                      child: Center(child: _LiveStage(service: _service)),
-                    ),
-                  ),
-                ),
+                child: wide
+                    ? _WideDisplayLayout(
+                        user: user,
+                        command: sky.command,
+                        totalSeedCount: totalSeedCount,
+                        personalSeedCount: personalSeedCount,
+                      )
+                    : _CompactDisplayLayout(
+                        user: user,
+                        command: sky.command,
+                        totalSeedCount: totalSeedCount,
+                        personalSeedCount: personalSeedCount,
+                      ),
               ),
             ],
           );
@@ -57,179 +97,240 @@ class DisplayLiveView extends StatelessWidget {
   }
 }
 
-class _LiveStage extends StatelessWidget {
-  const _LiveStage({required this.service});
+class _WideDisplayLayout extends StatelessWidget {
+  const _WideDisplayLayout({
+    required this.user,
+    required this.command,
+    required this.totalSeedCount,
+    required this.personalSeedCount,
+  });
 
-  final FestivalFirestoreService service;
+  final HighlightedUser? user;
+  final String command;
+  final int totalSeedCount;
+  final int personalSeedCount;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
+        final height = constraints.maxHeight;
+        final sideMargin = (width * 0.016).clamp(20.0, 48.0);
+        final cardWidth = (width * 0.22).clamp(270.0, 430.0);
+        final cardHeight = (height * 0.54).clamp(330.0, 560.0);
+        final cardTop = math.max(0.0, (height - cardHeight) / 2);
+        final titleTop = (height * 0.18).clamp(88.0, 210.0);
 
-        final totalCard = StreamBuilder<int>(
-          stream: service.watchTotalSeedCount(),
-          builder: (context, snapshot) {
-            return _DisplayMetricCard(
-              chip: '황금씨앗 누적집계',
-              chipColor: const Color(0xFFF05C80),
-              count: '${snapshot.data ?? 0}개',
-              image: 'assets/display/seed.png',
-              accentColor: const Color(0xFFF05C80),
-            );
-          },
+        return Stack(
+          children: [
+            Positioned(
+              top: titleTop,
+              left: 0,
+              right: 0,
+              child: _HeroTitle(user: user, command: command),
+            ),
+            Positioned(
+              left: sideMargin,
+              top: cardTop,
+              width: cardWidth,
+              height: cardHeight,
+              child: _FestivalSeedCard(seedCount: totalSeedCount),
+            ),
+            Positioned(
+              right: sideMargin,
+              top: cardTop,
+              width: cardWidth,
+              height: cardHeight,
+              child: _PersonalSeedCard(seedCount: personalSeedCount),
+            ),
+          ],
         );
+      },
+    );
+  }
+}
 
-        final personalCard = StreamBuilder<HighlightedUser?>(
-          stream: service.watchHighlightedUser(),
-          builder: (context, snapshot) {
-            return _PersonalSeedCard(seedCount: snapshot.data?.seedCount ?? 0);
-          },
+class _CompactDisplayLayout extends StatelessWidget {
+  const _CompactDisplayLayout({
+    required this.user,
+    required this.command,
+    required this.totalSeedCount,
+    required this.personalSeedCount,
+  });
+
+  final HighlightedUser? user;
+  final String command;
+  final int totalSeedCount;
+  final int personalSeedCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final cardWidth = width >= 720
+            ? (width * 0.44).clamp(260.0, 360.0)
+            : math.min(width - 32, 360.0);
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            (width * 0.04).clamp(16.0, 28.0),
+            (constraints.maxHeight * 0.18).clamp(42.0, 140.0),
+            (width * 0.04).clamp(16.0, 28.0),
+            28,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 46),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _HeroTitle(user: user, command: command),
+                const SizedBox(height: 28),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 24,
+                  runSpacing: 24,
+                  children: [
+                    SizedBox(
+                      width: cardWidth,
+                      height: 348,
+                      child: _FestivalSeedCard(seedCount: totalSeedCount),
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      height: 348,
+                      child: _PersonalSeedCard(seedCount: personalSeedCount),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
+      },
+    );
+  }
+}
 
-        final center = StreamBuilder<HighlightedUser?>(
-          stream: service.watchHighlightedUser(),
-          builder: (context, snapshot) {
-            return _CenterMessage(user: snapshot.data);
-          },
-        );
+class _HeroTitle extends StatelessWidget {
+  const _HeroTitle({required this.user, required this.command});
 
-        if (width > 1180) {
-          return Row(
+  final HighlightedUser? user;
+  final String command;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final seedCount = math.max(0, user?.seedCount ?? 0);
+        final nickname = (user?.nickname.trim().isNotEmpty ?? false)
+            ? user!.nickname.trim()
+            : '참여자';
+        final titleSize = (width * 0.038).clamp(31.0, 72.0);
+        final quoteSize = (titleSize * 1.25).clamp(42.0, 88.0);
+        final quoteGap = width * 0.08;
+
+        return Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: (width * 0.08).clamp(18, 92),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(width: math.min(width * 0.22, 360), child: totalCard),
-              SizedBox(width: (width * 0.055).clamp(42, 118)),
-              Expanded(child: center),
-              SizedBox(width: (width * 0.055).clamp(42, 118)),
-              SizedBox(width: math.min(width * 0.22, 360), child: personalCard),
-            ],
-          );
-        }
-
-        if (width > 760) {
-          return Column(
-            children: [
-              center,
-              SizedBox(height: (width * 0.04).clamp(34, 64)),
+              // Image.asset(
+              //   'assets/pictures/logo.png',
+              //   width: logoWidth,
+              //   fit: BoxFit.contain,
+              //   filterQuality: FilterQuality.high,
+              // ),
+              SizedBox(height: (width * 0.01).clamp(8.0, 18.0)),
               Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: totalCard),
-                  const SizedBox(width: 24),
-                  Expanded(child: personalCard),
+                  Transform.translate(
+                    offset: Offset(0, -titleSize * 0.08),
+                    child: Text(
+                      '“',
+                      style: TextStyle(
+                        color: const Color(0xFF2E8B50),
+                        fontSize: quoteSize,
+                        height: 1,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: quoteGap),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: math.max(
+                        0,
+                        width - (quoteSize * 2) - (quoteGap * 2) - 36,
+                      ),
+                    ),
+                    child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: TextStyle(
+                          color: const Color(0xFF4B4E50),
+                          fontSize: titleSize,
+                          height: 1.12,
+                          fontWeight: FontWeight.w900,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: '[$nickname]이 오늘 찾은 황금씨앗 [$seedCount]개로\n',
+                          ),
+                          TextSpan(
+                            text: command,
+                            style: const TextStyle(color: Color(0xFF2E8B50)),
+                          ),
+                          const TextSpan(text: ' 하늘이 맑아졌어요.'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: quoteGap),
+                  Transform.translate(
+                    offset: Offset(0, -titleSize * 0.08),
+                    child: Text(
+                      '”',
+                      style: TextStyle(
+                        color: const Color(0xFF2E8B50),
+                        fontSize: quoteSize,
+                        height: 1,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ],
-          );
-        }
-
-        return Column(
-          children: [
-            center,
-            const SizedBox(height: 22),
-            totalCard,
-            const SizedBox(height: 22),
-            personalCard,
-          ],
+          ),
         );
       },
     );
   }
 }
 
-class _CenterMessage extends StatelessWidget {
-  const _CenterMessage({required this.user});
+class _FestivalSeedCard extends StatelessWidget {
+  const _FestivalSeedCard({required this.seedCount});
 
-  final HighlightedUser? user;
-
-  @override
-  Widget build(BuildContext context) {
-    final seedCount = _clampSeedCount(user?.seedCount ?? 0);
-    final profile = _carbonProfile(seedCount);
-    final hasUser = user?.nickname.isNotEmpty ?? false;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final message = hasUser
-            ? '${user!.nickname}님이 모은 황금씨앗으로\n${profile.text}\n만큼의 이동을 아꼈어요.'
-            : '지금 막 참여자가 등장하면 여기에 반영됩니다!';
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: math.min(width, 980)),
-              child: Text(
-                message,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: const Color(0xFF1F2C18),
-                  fontWeight: FontWeight.w900,
-                  height: 1.14,
-                  letterSpacing: -1.8,
-                  fontSize: (width * 0.055).clamp(26, 58),
-                ),
-              ),
-            ),
-            SizedBox(height: (width * 0.026).clamp(18, 30)),
-            SizedBox(
-              width: (width * 0.30).clamp(156, 286),
-              height: (width * 0.30).clamp(156, 286),
-              child: Image.asset(
-                hasUser ? profile.asset : 'assets/display/seed.png',
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.high,
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _DisplayMetricCard extends StatelessWidget {
-  const _DisplayMetricCard({
-    required this.chip,
-    required this.chipColor,
-    required this.count,
-    required this.image,
-    required this.accentColor,
-  });
-
-  final String chip;
-  final Color chipColor;
-  final String count;
-  final String image;
-  final Color accentColor;
+  final int seedCount;
 
   @override
   Widget build(BuildContext context) {
-    return _GlassCard(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _CardChip(label: chip, color: chipColor),
-          const SizedBox(height: 34),
-          Image.asset(
-            image,
-            width: 116,
-            fit: BoxFit.contain,
-            filterQuality: FilterQuality.high,
-          ),
-          const SizedBox(height: 20),
-          Text(
-            count,
-            style: TextStyle(
-              color: accentColor,
-              fontSize: 48,
-              height: 1,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -1.2,
-            ),
-          ),
-        ],
-      ),
+    return _SeedCountCard(
+      seedCount: seedCount,
+      title: const [
+        _CardTextPart('청주가 그린'),
+        _CardTextPart('Green Festival에서'),
+        _CardTextPart('모은 '),
+        _CardTextPart('황금씨앗', color: Color(0xFFE95375)),
+      ],
+      titleFontScale: 0.96,
     );
   }
 }
@@ -241,168 +342,170 @@ class _PersonalSeedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final visibleCount = math.min(_clampSeedCount(seedCount), 9);
-    return _GlassCard(
-      child: Stack(
-        children: [
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _CardChip(label: '내가 모은 황금 씨앗', color: Color(0xFF5E9733)),
-                const Spacer(),
-                Transform.rotate(
-                  angle: 0.2,
-                  child: Image.asset(
-                    'assets/display/seed.png',
-                    width: 44,
-                    height: 62,
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.high,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 58),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '+${_clampSeedCount(seedCount)}개',
-                  style: const TextStyle(
-                    color: Color(0xFF27301A),
-                    fontSize: 48,
-                    height: 1,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -1.2,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: 210,
-                  child: Wrap(
-                    spacing: 14,
-                    runSpacing: 12,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      for (var i = 0; i < visibleCount; i++)
-                        Image.asset(
-                          'assets/display/seed.png',
-                          width: 38,
-                          height: 54,
-                          fit: BoxFit.contain,
-                          filterQuality: FilterQuality.high,
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return _SeedCountCard(
+      seedCount: seedCount,
+      title: const [
+        _CardTextPart('내가 모은'),
+        _CardTextPart('황금씨앗', color: Color(0xFFE95375)),
+      ],
+      titleFontScale: 1.06,
     );
   }
 }
 
-class _GlassCard extends StatelessWidget {
-  const _GlassCard({required this.child});
+class _SeedCountCard extends StatelessWidget {
+  const _SeedCountCard({
+    required this.seedCount,
+    required this.title,
+    required this.titleFontScale,
+  });
 
-  final Widget child;
+  final int seedCount;
+  final List<_CardTextPart> title;
+  final double titleFontScale;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 300),
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.70),
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: const Color(0x2945622D)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x2454542A),
-            blurRadius: 60,
-            offset: Offset(0, 24),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final height = constraints.maxHeight;
+        final seedSize = math.min(width, height) * 0.19;
+        final titleSize = (width * 0.112 * titleFontScale).clamp(25.0, 44.0);
+        final countSize = (width * 0.14).clamp(34.0, 58.0);
+        final verticalGap = (height * 0.042).clamp(12.0, 26.0);
+
+        return Container(
+          padding: EdgeInsets.fromLTRB(
+            (width * 0.095).clamp(22.0, 36.0),
+            (height * 0.095).clamp(24.0, 44.0),
+            (width * 0.095).clamp(22.0, 36.0),
+            (height * 0.08).clamp(22.0, 36.0),
           ),
-        ],
-      ),
-      child: child,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.88),
+            borderRadius: BorderRadius.circular(26),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1A355C5B),
+                blurRadius: 30,
+                offset: Offset(0, 18),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/display/seed.png',
+                width: seedSize,
+                height: seedSize,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+              ),
+              SizedBox(height: verticalGap),
+              _CardTitle(parts: title, fontSize: titleSize),
+              SizedBox(height: verticalGap * 0.75),
+              Icon(
+                Icons.arrow_drop_down_rounded,
+                size: countSize * 0.88,
+                color: const Color(0xFF2E8B50),
+              ),
+              SizedBox(height: verticalGap * 0.28),
+              _BracketSeedCount(seedCount: seedCount, fontSize: countSize),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
-class _CardChip extends StatelessWidget {
-  const _CardChip({required this.label, required this.color});
+class _CardTitle extends StatelessWidget {
+  const _CardTitle({required this.parts, required this.fontSize});
 
-  final String label;
-  final Color color;
+  final List<_CardTextPart> parts;
+  final double fontSize;
 
   @override
   Widget build(BuildContext context) {
-    return Transform.translate(
-      offset: const Offset(0, -30),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(999),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x22364728),
-              blurRadius: 22,
-              offset: Offset(0, 12),
-            ),
-          ],
+    final children = <InlineSpan>[];
+    for (var index = 0; index < parts.length; index += 1) {
+      final part = parts[index];
+      children.add(
+        TextSpan(
+          text: part.text,
+          style: TextStyle(color: part.color ?? const Color(0xFF2E8B50)),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.2,
-          ),
+      );
+      if (index < parts.length - 1 && !part.text.endsWith(' ')) {
+        children.add(const TextSpan(text: '\n'));
+      }
+    }
+
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: fontSize,
+          height: 1.18,
+          fontWeight: FontWeight.w900,
+        ),
+        children: children,
+      ),
+    );
+  }
+}
+
+class _BracketSeedCount extends StatelessWidget {
+  const _BracketSeedCount({required this.seedCount, required this.fontSize});
+
+  final int seedCount;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        '[  $seedCount개  ]',
+        style: TextStyle(
+          color: const Color(0xFF4B4E50),
+          fontSize: fontSize,
+          height: 1,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );
   }
 }
 
-class _CarbonProfile {
-  const _CarbonProfile({required this.text, required this.asset});
+class _CardTextPart {
+  const _CardTextPart(this.text, {this.color});
 
   final String text;
+  final Color? color;
+}
+
+class _SkyProfile {
+  const _SkyProfile({required this.asset, required this.command});
+
   final String asset;
+  final String command;
 }
 
-_CarbonProfile _carbonProfile(int seedCount) {
-  if (seedCount <= 7) {
-    return const _CarbonProfile(
-      text: '승용차 대신 가까운 거리를 걸은 셈',
-      asset: 'assets/display/car.png',
+_SkyProfile _skyProfile(int seedCount) {
+  if (seedCount <= 9) {
+    return const _SkyProfile(
+      asset: 'assets/videos/dungbu.mp4',
+      command: '동부창고',
     );
   }
-  if (seedCount <= 10) {
-    return const _CarbonProfile(
-      text: '버스 한 번쯤은 덜 탄 만큼',
-      asset: 'assets/display/bus.png',
+  if (seedCount <= 14) {
+    return const _SkyProfile(
+      asset: 'assets/videos/cheongju.mp4',
+      command: '청주시',
     );
   }
-  if (seedCount <= 15) {
-    return const _CarbonProfile(
-      text: '기차 이동 한 구간을 아낀 셈',
-      asset: 'assets/display/train.png',
-    );
-  }
-  return const _CarbonProfile(
-    text: '비행 대신 오래 남는 선택을 했어요',
-    asset: 'assets/display/airplane.png',
-  );
+  return const _SkyProfile(asset: 'assets/videos/korea.mp4', command: '대한민국');
 }
-
-int _clampSeedCount(int value) => value < 0 ? 0 : value;

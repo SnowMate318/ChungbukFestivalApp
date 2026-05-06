@@ -45,7 +45,7 @@ class _ResidenceViewState extends State<ResidenceView> {
     _surveyController.setResidence(residence.value);
 
     _navigationTimer?.cancel();
-    _navigationTimer = Timer(const Duration(seconds: 1), () {
+    _navigationTimer = Timer(const Duration(milliseconds: 200), () {
       if (!mounted) return;
       Get.toNamed(AppPages.PHONE_NUMBER);
     });

@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:get/get.dart';
 import '../../data/models/survey_step_model.dart';
 import '../../data/models/option_model.dart';
@@ -50,6 +52,9 @@ class SurveyController extends GetxController {
 
   /// 서버 전송 직전 payload 확인용
   RxMap<String, dynamic> pendingParticipantPayload = <String, dynamic>{}.obs;
+
+  /// 마지막으로 Firestore에 생성된 참여자 uid
+  RxString lastCreatedUserUid = ''.obs;
 
   /// 현재 단계 반환
   SurveyStepModel get currentStep => steps[currentStepIndex.value];
@@ -150,27 +155,29 @@ class SurveyController extends GetxController {
     };
   }
 
-  Future<void> sendParticipantInfoToServer() async {
+  Future<String> sendParticipantInfoToServer() async {
     final payload = buildParticipantPayload();
     pendingParticipantPayload.assignAll(payload);
 
-    await sendParticipantPayloadToServer(payload);
+    return sendParticipantPayloadToServer(payload);
   }
 
-  Future<void> sendParticipantPayloadToServer(
+  Future<String> sendParticipantPayloadToServer(
     Map<String, dynamic> payload,
   ) async {
     try {
-      await _sendParticipantPayload(payload);
+      return _sendParticipantPayload(payload);
     } catch (e) {
       print('Failed to send participant payload: $e');
       rethrow;
     }
   }
 
-  Future<void> _sendParticipantPayload(Map<String, dynamic> payload) async {
+  Future<String> _sendParticipantPayload(Map<String, dynamic> payload) async {
     final uid = await _festivalService.createUserFromSurveyPayload(payload);
+    lastCreatedUserUid.value = uid;
     print('Participant stored in Firestore: $uid');
+    return uid;
   }
 
   Future<bool> isNicknameDuplicated(String value) {
@@ -197,6 +204,7 @@ class SurveyController extends GetxController {
     residence.value = '';
     phoneNumber.value = '';
     pendingParticipantPayload.clear();
+    lastCreatedUserUid.value = '';
     setNickname(value);
   }
 
@@ -302,6 +310,7 @@ class SurveyController extends GetxController {
     residence.value = '';
     phoneNumber.value = '';
     pendingParticipantPayload.clear();
+    lastCreatedUserUid.value = '';
     selectedContentTitle.value = '';
     hasSubmitted.value = false;
 

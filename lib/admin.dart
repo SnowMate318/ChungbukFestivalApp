@@ -45,16 +45,44 @@ class AdminPage extends StatefulWidget {
 }
 
 class _AdminPageState extends State<AdminPage> {
+  static const _adminPassword = '9358';
+
   final FestivalFirestoreService _service = FestivalFirestoreService();
+  final TextEditingController _passwordController = TextEditingController();
   int _pageIndex = 0;
+  bool _authenticated = false;
+  String _passwordError = '';
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   void _goToPage(int index) {
     if (_pageIndex == index) return;
     setState(() => _pageIndex = index);
   }
 
+  void _submitPassword() {
+    final password = _passwordController.text.trim();
+    if (password == _adminPassword) {
+      setState(() {
+        _authenticated = true;
+        _passwordError = '';
+      });
+      return;
+    }
+
+    setState(() {
+      _passwordError = '비밀번호가 올바르지 않습니다.';
+      _passwordController.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final maxContentWidth = _pageIndex == 1 ? 1680.0 : 1240.0;
     final pages = <Widget>[
       _HomeTab(service: _service, onSelect: _goToPage),
       _UsersTab(service: _service, onHome: () => _goToPage(0)),
@@ -71,7 +99,7 @@ class _AdminPageState extends State<AdminPage> {
           SafeArea(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1240),
+                constraints: BoxConstraints(maxWidth: maxContentWidth),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
                   child: Column(
@@ -90,6 +118,14 @@ class _AdminPageState extends State<AdminPage> {
               ),
             ),
           ),
+          if (!_authenticated)
+            Positioned.fill(
+              child: _AdminPasswordGate(
+                controller: _passwordController,
+                errorText: _passwordError,
+                onSubmit: _submitPassword,
+              ),
+            ),
         ],
       ),
     );
@@ -154,6 +190,98 @@ class _HomeTab extends StatelessWidget {
   }
 }
 
+class _AdminPasswordGate extends StatelessWidget {
+  const _AdminPasswordGate({
+    required this.controller,
+    required this.errorText,
+    required this.onSubmit,
+  });
+
+  final TextEditingController controller;
+  final String errorText;
+  final VoidCallback onSubmit;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: const Color(0x99000000),
+      child: Center(
+        child: Container(
+          width: 420,
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.fromLTRB(28, 28, 28, 24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x33000000),
+                blurRadius: 36,
+                offset: Offset(0, 18),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                '관리자 비밀번호',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _AdminPalette.ink,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '관리 페이지에 접근하려면 비밀번호를 입력해주세요.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _AdminPalette.muted,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  height: 1.35,
+                ),
+              ),
+              const SizedBox(height: 22),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => onSubmit(),
+                decoration: _inputDecoration(
+                  '비밀번호',
+                ).copyWith(errorText: errorText.isEmpty ? null : errorText),
+              ),
+              const SizedBox(height: 18),
+              FilledButton(
+                onPressed: onSubmit,
+                style: FilledButton.styleFrom(
+                  backgroundColor: _AdminPalette.ink,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  '확인',
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _UsersTab extends StatefulWidget {
   const _UsersTab({required this.service, required this.onHome});
 
@@ -197,6 +325,10 @@ class _UsersTabState extends State<_UsersTab> {
   }
 
   Future<void> _highlight(FestivalUser user) async {
+    if (user.lastSubmittedAt == null) {
+      _showSnack(context, '최종 제출하지 않은 참가자는 강조 상태로 변경할 수 없습니다.', isError: true);
+      return;
+    }
     try {
       await widget.service.updateHighlightedUserByPhoneNumber(user.phoneNumber);
       if (!mounted) return;
@@ -2197,85 +2329,110 @@ class _UsersTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.78),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0x1A704E30)),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          dataRowMinHeight: 72,
-          dataRowMaxHeight: 72,
-          headingRowHeight: 54,
-          columnSpacing: 20,
-          headingRowColor: WidgetStatePropertyAll(
-            const Color(0xFFF6EEE2).withValues(alpha: 0.96),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tableWidth = math.max(constraints.maxWidth, 1280.0);
+
+        return Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.78),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0x1A704E30)),
           ),
-          columns: const [
-            DataColumn(label: Text('상태')),
-            DataColumn(label: Text('닉네임')),
-            DataColumn(label: Text('UID')),
-            DataColumn(label: Text('휴대폰 번호')),
-            DataColumn(label: Text('성별')),
-            DataColumn(label: Text('연령')),
-            DataColumn(label: Text('참여인원')),
-            DataColumn(label: Text('거주정보')),
-            DataColumn(label: Text('총 시드')),
-            DataColumn(label: Text('최근 제출')),
-          ],
-          rows: users.map((user) {
-            return DataRow(
-              color: WidgetStatePropertyAll(
-                user.isHighlighted
-                    ? _AdminPalette.accent.withValues(alpha: 0.08)
-                    : Colors.transparent,
-              ),
-              cells: [
-                DataCell(
-                  _StatusBadge(
-                    label: user.isHighlighted ? 'LIVE' : '대기',
-                    highlighted: user.isHighlighted,
-                  ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: tableWidth),
+              child: DataTable(
+                dataRowMinHeight: 72,
+                dataRowMaxHeight: 72,
+                headingRowHeight: 54,
+                columnSpacing: 24,
+                horizontalMargin: 18,
+                headingRowColor: WidgetStatePropertyAll(
+                  const Color(0xFFF6EEE2).withValues(alpha: 0.96),
                 ),
-                DataCell(Text(user.nickname)),
-                DataCell(
-                  SelectableText(
-                    user.uid,
-                    style: const TextStyle(
-                      color: _AdminPalette.ink,
-                      fontWeight: FontWeight.w700,
+                columns: const [
+                  DataColumn(label: Text('상태')),
+                  DataColumn(label: Text('닉네임')),
+                  DataColumn(label: Text('UID')),
+                  DataColumn(label: Text('휴대폰 번호')),
+                  DataColumn(label: Text('성별')),
+                  DataColumn(label: Text('연령')),
+                  DataColumn(label: Text('참여인원')),
+                  DataColumn(label: Text('거주정보')),
+                  DataColumn(label: Text('총 시드')),
+                  DataColumn(label: Text('최근 제출')),
+                ],
+                rows: users.map((user) {
+                  final canHighlight = user.lastSubmittedAt != null;
+                  return DataRow(
+                    color: WidgetStatePropertyAll(
+                      user.isHighlighted
+                          ? _AdminPalette.accent.withValues(alpha: 0.08)
+                          : Colors.transparent,
                     ),
-                  ),
-                ),
-                DataCell(
-                  TextButton.icon(
-                    onPressed: () => onHighlight(user),
-                    icon: const Icon(Icons.campaign_outlined, size: 16),
-                    label: Text(user.phoneNumber),
-                    style: TextButton.styleFrom(
-                      foregroundColor: _AdminPalette.teal,
-                      backgroundColor: _AdminPalette.tealSoft,
-                      shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
+                    cells: [
+                      DataCell(
+                        _StatusBadge(
+                          label: user.isHighlighted ? 'LIVE' : '대기',
+                          highlighted: user.isHighlighted,
+                        ),
                       ),
-                    ),
-                  ),
-                ),
-                DataCell(Text(_displayGender(user))),
-                DataCell(Text(_displayAge(user))),
-                DataCell(Text('${user.participantCount}명')),
-                DataCell(Text(_displayResidence(user))),
-                DataCell(Text('${user.seedCount}')),
-                DataCell(Text(_formatDate(user.lastSubmittedAt))),
-              ],
-            );
-          }).toList(),
-        ),
-      ),
+                      DataCell(Text(user.nickname)),
+                      DataCell(
+                        SelectableText(
+                          user.uid,
+                          style: const TextStyle(
+                            color: _AdminPalette.ink,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(minWidth: 156),
+                          child: TextButton.icon(
+                            onPressed: canHighlight
+                                ? () => onHighlight(user)
+                                : null,
+                            icon: const Icon(Icons.campaign_outlined, size: 16),
+                            label: Text(
+                              user.phoneNumber,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            style: TextButton.styleFrom(
+                              foregroundColor: canHighlight
+                                  ? _AdminPalette.teal
+                                  : _AdminPalette.muted,
+                              backgroundColor: canHighlight
+                                  ? _AdminPalette.tealSoft
+                                  : const Color(0xFFE8E0D5),
+                              shape: const StadiumBorder(),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataCell(Text(_displayGender(user))),
+                      DataCell(Text(_displayAge(user))),
+                      DataCell(Text('${user.participantCount}명')),
+                      DataCell(Text(_displayResidence(user))),
+                      DataCell(Text('${user.seedCount}')),
+                      DataCell(Text(_formatDate(user.lastSubmittedAt))),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

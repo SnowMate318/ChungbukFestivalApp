@@ -29,6 +29,15 @@ class App extends StatelessWidget {
         return GetMaterialApp(
           title: 'greenfestival',
           debugShowCheckedModeBanner: false,
+          // theme: ThemeData(
+          //   fontFamily: 'NotoSansKR',
+          //   textTheme: Theme.of(
+          //     context,
+          //   ).textTheme.apply(fontFamily: 'NotoSansKR'),
+          //   primaryTextTheme: Theme.of(
+          //     context,
+          //   ).primaryTextTheme.apply(fontFamily: 'NotoSansKR'),
+          // ),
           initialBinding: InitialBinding(),
           getPages: AppPages.pages,
           initialRoute: AppPages.INITIAL,

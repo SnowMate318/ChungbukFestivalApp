@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter Web Chrome 16:9",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "chrome",
+      "toolArgs": [
+        "--web-browser-flag=--window-size=1920,1080"
+      ]
+    },
+    {
+      "name": "Flutter Web Chrome 16:9 Fullscreen",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "chrome",
+      "toolArgs": [
+        "--web-browser-flag=--window-size=1920,1080",
+        "--web-browser-flag=--start-fullscreen"
+      ]
+    }
+  ]
+}

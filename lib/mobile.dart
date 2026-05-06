@@ -155,7 +155,11 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
     setState(() => _saving = true);
 
     try {
-      await _service.updateUserSeedCounts(uid: user.uid, seedCounts: _counts);
+      await _service.updateUserSeedCounts(
+        uid: user.uid,
+        seedCounts: _counts,
+        markSubmitted: true,
+      );
       if (!mounted) return;
       setState(() {
         _dirty = false;
@@ -1407,10 +1411,6 @@ class SubmitPage extends StatelessWidget {
                               final seedSize = panelConstraints.maxWidth <= 340
                                   ? 27.0
                                   : 30.0;
-                              final qrSize = math.min(
-                                116.0,
-                                math.max(96.0, panelConstraints.maxWidth * 0.3),
-                              );
 
                               return SingleChildScrollView(
                                 padding: EdgeInsets.fromLTRB(
@@ -1476,14 +1476,6 @@ class SubmitPage extends StatelessWidget {
                                         color: Color(0xff3f8f35),
                                         fontSize: 20,
                                         fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 28),
-                                    SizedBox(
-                                      width: qrSize,
-                                      height: qrSize,
-                                      child: const CustomPaint(
-                                        painter: SubmitQrPainter(),
                                       ),
                                     ),
                                     const SizedBox(height: 32),
@@ -1798,68 +1790,6 @@ class SeedPainter extends CustomPainter {
       Offset(size.width * 0.48, size.height * 0.66),
       highlight,
     );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class SubmitQrPainter extends CustomPainter {
-  const SubmitQrPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cell = size.width / 21;
-    final white = Paint()..color = Colors.white;
-    final black = Paint()..color = Colors.black;
-
-    canvas.drawRect(Offset.zero & size, white);
-
-    void drawCell(int x, int y, {Paint? paint}) {
-      canvas.drawRect(
-        Rect.fromLTWH(x * cell, y * cell, cell, cell),
-        paint ?? black,
-      );
-    }
-
-    void finder(int startX, int startY) {
-      for (var y = 0; y < 7; y += 1) {
-        for (var x = 0; x < 7; x += 1) {
-          final edge = x == 0 || y == 0 || x == 6 || y == 6;
-          final core = x >= 2 && x <= 4 && y >= 2 && y <= 4;
-          if (edge || core) {
-            drawCell(startX + x, startY + y);
-          }
-        }
-      }
-    }
-
-    finder(1, 1);
-    finder(13, 1);
-    finder(1, 13);
-
-    for (var y = 0; y < 21; y += 1) {
-      for (var x = 0; x < 21; x += 1) {
-        final inFinder =
-            (x >= 1 && x <= 7 && y >= 1 && y <= 7) ||
-            (x >= 13 && x <= 19 && y >= 1 && y <= 7) ||
-            (x >= 1 && x <= 7 && y >= 13 && y <= 19);
-        if (inFinder) {
-          continue;
-        }
-
-        final value = (x * 7 + y * 11 + x * y) % 6;
-        if (value == 0 || value == 2) {
-          drawCell(x, y);
-        }
-      }
-    }
-
-    final border = Paint()
-      ..color = Colors.black
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), border);
   }
 
   @override

@@ -36,7 +36,7 @@ class _GenderViewState extends State<GenderView> {
     _surveyController.setGender(gender);
 
     _navigationTimer?.cancel();
-    _navigationTimer = Timer(const Duration(seconds: 1), () {
+    _navigationTimer = Timer(const Duration(milliseconds: 200), () {
       if (!mounted) return;
       Get.toNamed(AppPages.AGE);
     });

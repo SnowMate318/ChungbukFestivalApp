@@ -132,6 +132,10 @@ class FestivalFirestoreService {
           }
 
           final user = FestivalUser.fromSnapshot(userSnapshot);
+          if (user.lastSubmittedAt == null) {
+            controller.add(null);
+            return;
+          }
           controller.add(
             HighlightedUser(nickname: user.nickname, seedCount: user.seedCount),
           );
@@ -336,6 +340,9 @@ class FestivalFirestoreService {
 
   Future<void> updateHighlightedUserByPhoneNumber(String phoneNumber) async {
     final user = await findUserByPhoneNumber(phoneNumber);
+    if (user.lastSubmittedAt == null) {
+      throw const FestivalAdminException('최종 제출하지 않은 참가자는 강조 상태로 변경할 수 없습니다.');
+    }
     await _highlightSettings.set({
       'userUid': user.uid,
       'phoneNumber': user.phoneNumber,
@@ -556,6 +563,7 @@ class FestivalFirestoreService {
   Future<void> updateUserSeedCounts({
     required String uid,
     required Map<String, int> seedCounts,
+    bool markSubmitted = false,
   }) async {
     final userRef = _users.doc(uid);
     final seedValueByUid = await _loadSeedValueByUid();
@@ -595,19 +603,23 @@ class FestivalFirestoreService {
       final diff = nextTotal - user.seedCount;
 
       if (_mapEquals(user.seedCounts, boundedSeedCounts)) {
-        transaction.update(userRef, {
-          'lastSubmittedAt': serverNow,
-          'updatedAt': serverNow,
-        });
+        final updates = <String, Object>{'updatedAt': serverNow};
+        if (markSubmitted) {
+          updates['lastSubmittedAt'] = serverNow;
+        }
+        transaction.update(userRef, updates);
         return;
       }
 
-      transaction.update(userRef, {
+      final updates = <String, Object>{
         'seedCounts': boundedSeedCounts,
         'seedCount': nextTotal,
-        'lastSubmittedAt': serverNow,
         'updatedAt': serverNow,
-      });
+      };
+      if (markSubmitted) {
+        updates['lastSubmittedAt'] = serverNow;
+      }
+      transaction.update(userRef, updates);
 
       transaction.set(_summaryMetrics, {
         'totalSeedCount': FieldValue.increment(diff),

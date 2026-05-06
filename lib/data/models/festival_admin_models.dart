@@ -125,6 +125,9 @@ class FestivalUser {
     final gender = _asInt(data['gender']) ?? 0;
     final ageGroup = _asInt(data['ageGroup']) ?? _asInt(data['age_group']) ?? 0;
     final residence = _asInt(data['residence']) ?? 0;
+    final lastSubmittedAt = _asDateTime(
+      data['lastSubmittedAt'] ?? data['last_submitted_at'],
+    );
 
     return FestivalUser(
       uid: _asString(data['uid'], fallback: snapshot.id),
@@ -149,14 +152,13 @@ class FestivalUser {
       phoneNumber: _asString(data['phoneNumber'] ?? data['phone_number']),
       seedCount: _asInt(data['seedCount'] ?? data['seed_count']) ?? 0,
       seedCounts: _asIntMap(data['seedCounts'] ?? data['seed_counts']),
-      lastSubmittedAt: _asDateTime(
-        data['lastSubmittedAt'] ?? data['last_submitted_at'],
-      ),
+      lastSubmittedAt: lastSubmittedAt,
       createdAt: _asDateTime(data['createdAt'] ?? data['created_at']),
       updatedAt: _asDateTime(data['updatedAt'] ?? data['updated_at']),
       isHighlighted:
           highlightedUid != null &&
-          highlightedUid == _asString(data['uid'], fallback: snapshot.id),
+          highlightedUid == _asString(data['uid'], fallback: snapshot.id) &&
+          lastSubmittedAt != null,
       source: _asString(data['source'], fallback: 'admin'),
     );
   }
