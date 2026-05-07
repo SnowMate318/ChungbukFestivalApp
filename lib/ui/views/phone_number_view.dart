@@ -227,7 +227,7 @@ class _PhoneNumberCard extends StatelessWidget {
             style: TextStyle(
               color: Color(0xFF9B9B9B),
               fontSize: 22,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w500,
               height: 1,
             ),
           ),
@@ -250,7 +250,7 @@ class _PhoneNumberCard extends StatelessWidget {
                       ? const Color(0xFF545454)
                       : const Color(0xFFD5D5D5),
                   fontSize: 23,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                   height: 1,
                 ),
               ),
@@ -285,7 +285,7 @@ class _NextButton extends StatelessWidget {
           style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
-            fontWeight: FontWeight.w900,
+            fontWeight: FontWeight.w500,
             height: 1,
           ),
         ),
@@ -330,7 +330,7 @@ class _PhoneKeypadOverlay extends StatelessWidget {
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 22,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                   height: 1,
                 ),
               ),
@@ -392,7 +392,7 @@ class _PhoneNumberDisplay extends StatelessWidget {
                   ? const Color(0xFFB8B8B8)
                   : const Color(0xFF4A4A4A),
               fontSize: 21,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
               height: 1,
             ),
           ),
@@ -484,7 +484,7 @@ class _NumberKey extends StatelessWidget {
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 23,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
                 height: 1,
               ),
             ),
@@ -522,7 +522,7 @@ class _DialogActionButton extends StatelessWidget {
           style: TextStyle(
             color: textColor,
             fontSize: 20,
-            fontWeight: FontWeight.w900,
+            fontWeight: FontWeight.w500,
             height: 1,
           ),
         ),

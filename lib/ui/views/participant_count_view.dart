@@ -147,9 +147,7 @@ class _ParticipantCountViewState extends State<ParticipantCountView> {
                     padding: EdgeInsets.only(top: titleTopGap, bottom: 92),
                     child: Column(
                       children: [
-                        FestivalPageTitle(
-                          '스탬프 투어 참여 인원은 몇 명인가요?',
-                        ),
+                        FestivalPageTitle('스탬프 투어 참여 인원은 몇 명인가요?'),
                         SizedBox(height: titleToButtonsGap),
                         SizedBox(
                           width: contentWidth,
@@ -161,10 +159,9 @@ class _ParticipantCountViewState extends State<ParticipantCountView> {
                                   label: _counts[i],
                                   width: buttonWidth,
                                   height: buttonHeight,
-                                  selected:
-                                      _counts[i] == _customCountLabel
-                                          ? _isCustomCountSelected
-                                          : _selectedCount == _counts[i],
+                                  selected: _counts[i] == _customCountLabel
+                                      ? _isCustomCountSelected
+                                      : _selectedCount == _counts[i],
                                   onTap: () => _selectCount(_counts[i]),
                                 ),
                                 if (i != _counts.length - 1)
@@ -247,7 +244,7 @@ class _ParticipantCountOptionButton extends StatelessWidget {
               style: TextStyle(
                 color: selected ? Colors.white : const Color(0xFF8C8C8C),
                 fontSize: 18,
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w500,
                 height: 1,
               ),
             ),
@@ -294,7 +291,7 @@ class _ParticipantCountKeypadOverlay extends StatelessWidget {
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 22,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                   height: 1,
                 ),
               ),
@@ -357,12 +354,11 @@ class _ParticipantCountDisplay extends StatelessWidget {
           Text(
             isPlaceholder ? '8 ~ 99명' : '$countText명',
             style: TextStyle(
-              color:
-                  isPlaceholder
-                      ? const Color(0xFFB8B8B8)
-                      : const Color(0xFF4A4A4A),
+              color: isPlaceholder
+                  ? const Color(0xFFB8B8B8)
+                  : const Color(0xFF4A4A4A),
               fontSize: 21,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
               height: 1,
             ),
           ),
@@ -464,7 +460,7 @@ class _ParticipantCountNumberKey extends StatelessWidget {
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 23,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
                 height: 1,
               ),
             ),
@@ -502,7 +498,7 @@ class _ParticipantCountDialogActionButton extends StatelessWidget {
           style: TextStyle(
             color: textColor,
             fontSize: 20,
-            fontWeight: FontWeight.w900,
+            fontWeight: FontWeight.w500,
             height: 1,
           ),
         ),

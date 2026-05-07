@@ -25,7 +25,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 10.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -36,7 +36,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 10.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -47,7 +47,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 10.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -58,7 +58,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 10.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -83,13 +83,12 @@ final List<SurveyStepModel> sampleSurveySteps = [
     buttonLayout: ButtonLayoutType.spaced,
   ),
 
-
   // 🟦 STEP 1-2
   SurveyStepModel(
     id: 'step1-2',
     type: StepType.multiRowSelection,
-    //type: StepType.singleRowSelection,
 
+    //type: StepType.singleRowSelection,
     stepNumber: 1,
     stepLabel: '[KRISO 인지도 - 인식]',
     title: '2. KRISO SNS를 통해 얻고 싶은 정보를 선택해주세요! (최대 2개 선택 가능)',
@@ -107,15 +106,11 @@ final List<SurveyStepModel> sampleSurveySteps = [
         maxSelectable: 2,
         alignment: Alignment.topLeft,
         textAlign: TextAlign.left,
-        
       ),
       OptionModel(
         id: '2',
         text: '진로·커리어 정보',
-        subtitleList: [
-          '- 채용 소식',
-          '- 연구·연구지원\n  현직 종사자 이야기',
-        ],
+        subtitleList: ['- 채용 소식', '- 연구·연구지원\n  현직 종사자 이야기'],
         fontSize: 6.sp,
         isMultipleSelectable: true,
         maxSelectable: 2,
@@ -125,10 +120,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
       OptionModel(
         id: '3',
         text: '해양과학',
-        subtitleList: [
-          '- 재미있는 해양과학 상식',
-          '- 해양심층수·기후변동 등 흥미 해결 연구 사례',
-        ],
+        subtitleList: ['- 재미있는 해양과학 상식', '- 해양심층수·기후변동 등 흥미 해결 연구 사례'],
         fontSize: 5.sp,
         isMultipleSelectable: true,
         maxSelectable: 2,
@@ -138,10 +130,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
       OptionModel(
         id: '4',
         text: '소식·이벤트 안내',
-        subtitleList: [
-          '- KRISO 주최 행사\n  (세미나, 포럼 등)',
-          '- 이벤트 소식',
-        ],
+        subtitleList: ['- KRISO 주최 행사\n  (세미나, 포럼 등)', '- 이벤트 소식'],
         fontSize: 6.sp,
         isMultipleSelectable: true,
         maxSelectable: 2,
@@ -151,10 +140,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
       OptionModel(
         id: '5',
         text: '국제협력·네트워킹',
-        subtitleList: [
-          '- 국제학회·국제협력 소식',
-          '- 타 연구기관,\n  기업과의 협업 사례',
-        ],
+        subtitleList: ['- 국제학회·국제협력 소식', '- 타 연구기관,\n  기업과의 협업 사례'],
         fontSize: 6.sp,
         isMultipleSelectable: true,
         maxSelectable: 2,
@@ -164,9 +150,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
       OptionModel(
         id: '6',
         text: '대학생 참여 기회',
-        subtitleList: [
-          '- 연구소 견학, 공모전 및\n 아이디어 경진대회 소식',
-        ],
+        subtitleList: ['- 연구소 견학, 공모전 및\n 아이디어 경진대회 소식'],
         fontSize: 5.5.sp,
         isMultipleSelectable: true,
         maxSelectable: 2,
@@ -176,10 +160,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
       OptionModel(
         id: '7',
         text: '연구소 일상\n·비하인드',
-        subtitleList: [
-          '- 연구원들의 하루,\n  실험실·현장 스케치',
-          '- 연구장비, 시설 소개',
-        ],
+        subtitleList: ['- 연구원들의 하루,\n  실험실·현장 스케치', '- 연구장비, 시설 소개'],
         fontSize: 6.sp,
         isMultipleSelectable: true,
         maxSelectable: 2,
@@ -203,7 +184,6 @@ final List<SurveyStepModel> sampleSurveySteps = [
     ],
     buttonLayout: ButtonLayoutType.spaced,
   ),
-
 
   // 🟩 STEP 2-1
   SurveyStepModel(
@@ -282,8 +262,6 @@ final List<SurveyStepModel> sampleSurveySteps = [
     buttonLayout: ButtonLayoutType.spaced,
   ),
 
-
-
   // STEP 2-2
   SurveyStepModel(
     id: 'step2-2',
@@ -317,9 +295,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
     title: '주문 완료!',
 
     // 추가 데이터 (이미지 등)
-    extraData: {
-      'imageUrl': 'assets/images/order_complete.png',
-    },
+    extraData: {'imageUrl': 'assets/images/order_complete.png'},
 
     // 버튼 액션
     actions: [
@@ -348,7 +324,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
     stepLabel: '[KRISO 콘텐츠 퀴즈]',
     title: 'Q1. 다음 중 선박해양플랜트연구소(KRISO)의 주요 연구분야가 아닌 것은?',
     subtitle: null,
-    
+
     options: [
       OptionModel(
         id: '1',
@@ -356,7 +332,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 8.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         backgroundColor: HColor.gray1,
       ),
       OptionModel(
@@ -365,7 +341,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 8.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         backgroundColor: HColor.gray1,
       ),
       OptionModel(
@@ -374,7 +350,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 7.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         backgroundColor: HColor.gray1,
       ),
       OptionModel(
@@ -383,7 +359,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 8.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         backgroundColor: HColor.gray1,
       ),
     ],
@@ -467,9 +443,10 @@ final List<SurveyStepModel> sampleSurveySteps = [
     type: StepType.quizSelection,
     stepNumber: 3,
     stepLabel: '[KRISO 콘텐츠 퀴즈]',
-    title: 'Q2. KRISO는 친환경 대체연료 선박 적용 기술 연구개발, 육·해상 시험평가 및 실증 등을\n수행하기 위한 지역거점을 울산시에 구축하고 있다.',
+    title:
+        'Q2. KRISO는 친환경 대체연료 선박 적용 기술 연구개발, 육·해상 시험평가 및 실증 등을\n수행하기 위한 지역거점을 울산시에 구축하고 있다.',
     subtitle: null,
-    
+
     options: [
       OptionModel(
         id: '1',
@@ -477,9 +454,8 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 24.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         backgroundColor: HColor.gray1,
-
       ),
       OptionModel(
         id: '2',
@@ -487,7 +463,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 24.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         backgroundColor: HColor.gray1,
       ),
     ],
@@ -573,7 +549,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
     stepLabel: '[KRISO 콘텐츠 퀴즈]',
     title: 'Q3. 선박해양플랜트연구소가 2020년부터 개발해 온 지능형 자율항해시스템의 이름은\n무엇일까요?',
     subtitle: null,
-    
+
     options: [
       OptionModel(
         id: '1',
@@ -581,7 +557,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 12.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         backgroundColor: HColor.gray1,
       ),
       OptionModel(
@@ -590,7 +566,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 12.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         backgroundColor: HColor.gray1,
       ),
       OptionModel(
@@ -599,7 +575,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 12.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         backgroundColor: HColor.gray1,
       ),
       OptionModel(
@@ -608,7 +584,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 12.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         backgroundColor: HColor.gray1,
       ),
     ],
@@ -695,9 +671,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
     stepLabel: '[KRISO 콘텐츠 퀴즈]',
 
     title: '퀴즈 완료!',
-    extraData: {
-      'imageUrl': 'assets/images/quiz/step_3-4_info.png',
-    },
+    extraData: {'imageUrl': 'assets/images/quiz/step_3-4_info.png'},
     actions: [
       ActionButtonModel(
         id: 'next',
@@ -725,7 +699,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 11.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -736,7 +710,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 11.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -747,7 +721,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 11.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -758,7 +732,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 11.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -769,7 +743,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 11.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -811,7 +785,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 11.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -824,7 +798,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 11.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -837,7 +811,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 11.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -850,7 +824,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 11.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -863,7 +837,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 11.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -907,7 +881,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 10.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -918,7 +892,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 10.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -929,7 +903,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 9.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -940,7 +914,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 10.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -951,7 +925,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 10.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -962,7 +936,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 10.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -995,7 +969,8 @@ final List<SurveyStepModel> sampleSurveySteps = [
     stepNumber: 4,
     stepLabel: '[KRISO 수요조사]',
 
-    title: '4. KRISO 연구분야 중 미래세대를 위해 가장 꼭 필요한 연구 분야는 무엇이라고 생각하십니까? (복수 선택 3개 가능)',
+    title:
+        '4. KRISO 연구분야 중 미래세대를 위해 가장 꼭 필요한 연구 분야는 무엇이라고 생각하십니까? (복수 선택 3개 가능)',
 
     options: [
       OptionModel(
@@ -1004,7 +979,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 6.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1017,7 +992,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 8.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1030,7 +1005,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 8.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1043,7 +1018,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 8.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1056,7 +1031,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 8.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1069,7 +1044,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 7.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1082,7 +1057,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 8.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1095,7 +1070,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 8.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1139,7 +1114,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 7.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1150,7 +1125,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 7.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1161,7 +1136,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 7.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1172,7 +1147,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 7.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1183,7 +1158,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 7.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1194,7 +1169,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 7.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1205,7 +1180,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 7.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1216,7 +1191,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 7.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1258,7 +1233,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 11.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1269,7 +1244,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 11.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1280,7 +1255,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 11.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1291,7 +1266,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
         fontSize: 11.sp,
         textColor: HColor.gray3,
         alignment: Alignment.center,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         borderRadius: 10.r,
         backgroundColor: HColor.gray1,
         padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1325,9 +1300,7 @@ final List<SurveyStepModel> sampleSurveySteps = [
     stepLabel: 'FINISH',
 
     title: '참여 완료!',
-    extraData: {
-      'imageUrl': 'assets/images/content_complete.png',
-    },
+    extraData: {'imageUrl': 'assets/images/content_complete.png'},
     actions: [
       ActionButtonModel(
         id: 'submit',
@@ -1337,19 +1310,34 @@ final List<SurveyStepModel> sampleSurveySteps = [
       ),
     ],
   ),
-
 ];
 
 final List<Map<String, String>> seriesA = [
   {'num': '1편', 'title': '선박이 위치를\n찾는 방법', 'img': 'assets/images/A_1.png'},
-  {'num': '2편', 'title': 'KRISO의 친환경대체\n연료해상실증선박?', 'img': 'assets/images/A_2.png'},
+  {
+    'num': '2편',
+    'title': 'KRISO의 친환경대체\n연료해상실증선박?',
+    'img': 'assets/images/A_2.png',
+  },
   {'num': '3편', 'title': 'KRISO의\n해양그린수소?', 'img': 'assets/images/A_3.png'},
   {'num': '4편', 'title': 'KRISO의\n전기추진선박?', 'img': 'assets/images/A_4.png'},
   {'num': '5편', 'title': '해양생물을 괴롭히는\n선박소음 !?', 'img': 'assets/images/A_5.png'},
-  {'num': '6편', 'title': '심해에서도 로봇이\n활용되고 있다는 사실', 'img': 'assets/images/A_6.png'},
-  {'num': '7편', 'title': '바다 위의 테슬라?\n자율운항선박\n쉽게 알려드림', 'img': 'assets/images/A_7.png'},
+  {
+    'num': '6편',
+    'title': '심해에서도 로봇이\n활용되고 있다는 사실',
+    'img': 'assets/images/A_6.png',
+  },
+  {
+    'num': '7편',
+    'title': '바다 위의 테슬라?\n자율운항선박\n쉽게 알려드림',
+    'img': 'assets/images/A_7.png',
+  },
   {'num': '8편~9편', 'title': '질문에 답하다', 'img': 'assets/images/A_8.png'},
-  {'num': '10편', 'title': "'꿈의 항로'\n북극이 현실로!\n지금 상황 총정리", 'img': 'assets/images/A_9.png'},
+  {
+    'num': '10편',
+    'title': "'꿈의 항로'\n북극이 현실로!\n지금 상황 총정리",
+    'img': 'assets/images/A_9.png',
+  },
 ];
 
 final List<Map<String, String>> seriesB = [
@@ -1357,31 +1345,73 @@ final List<Map<String, String>> seriesB = [
   {'num': '2편', 'title': '벚꽃운동회\n현장 속으로', 'img': 'assets/images/B_2.png'},
   {'num': '3편', 'title': '책향기 동아리의\n전통시장 탐방', 'img': 'assets/images/B_3.png'},
   {'num': '4편', 'title': '선박해양플랜트연구소\n밸런스게임', 'img': 'assets/images/B_4.png'},
-  {'num': '5편', 'title': '해양플랜트 서비스산업\n아이디어 경진대회', 'img': 'assets/images/B_5.png'},
+  {
+    'num': '5편',
+    'title': '해양플랜트 서비스산업\n아이디어 경진대회',
+    'img': 'assets/images/B_5.png',
+  },
   {'num': '6편', 'title': 'KRISO\n해양과학카페', 'img': 'assets/images/B_6.png'},
   {'num': '7편', 'title': '크리소의 동호회를\n소개합니다!', 'img': 'assets/images/B_7.png'},
-  
 ];
 
 final List<Map<String, String>> seriesC = [
-  {'num': '1편', 'title': '배가 스스로 운전하면,\n우리는 뭐해요?', 'img': 'assets/images/C_1.png'},
-  {'num': '2편', 'title': '거제의 숨은 보물!\n해양플랜트산업지원센터\n소개', 'img': 'assets/images/C_2.png'},
-  {'num': '3편', 'title': '구조디지털 트윈으로\n20년 후 해양플랜트 상\n태를 알 수 있다', 'img': 'assets/images/C_3.png'},
-  {'num': '4편', 'title': '바다에서\n초고속 무선통신이\n가능하다?!', 'img': 'assets/images/C_4.png'},
+  {
+    'num': '1편',
+    'title': '배가 스스로 운전하면,\n우리는 뭐해요?',
+    'img': 'assets/images/C_1.png',
+  },
+  {
+    'num': '2편',
+    'title': '거제의 숨은 보물!\n해양플랜트산업지원센터\n소개',
+    'img': 'assets/images/C_2.png',
+  },
+  {
+    'num': '3편',
+    'title': '구조디지털 트윈으로\n20년 후 해양플랜트 상\n태를 알 수 있다',
+    'img': 'assets/images/C_3.png',
+  },
+  {
+    'num': '4편',
+    'title': '바다에서\n초고속 무선통신이\n가능하다?!',
+    'img': 'assets/images/C_4.png',
+  },
   {'num': '5편', 'title': '지금 전기추진\n차도선은?', 'img': 'assets/images/C_5.png'},
   {'num': '6편', 'title': '해양에너지?\n해양구조물?', 'img': 'assets/images/C_6.png'},
   {'num': '7편', 'title': '자율운항선박\n궁금해?', 'img': 'assets/images/C_7.png'},
-  {'num': '8편', 'title': 'KRISO 신입사원 인터뷰\n크리소 입사했소!\n어떻게 입사했소?', 'img': 'assets/images/C_8.png'},
-  {'num': '9편', 'title': '실패를 두려워 하지 않는\n올해의 KRISO인\n홍사영 책임연구원', 'img': 'assets/images/C_9.png'},
-  {'num': '10편', 'title': '해양플랜트산업지원센터\n거세 센터에서는\n무슨일을 할까?1편', 'img': 'assets/images/C_10.png'},
-  {'num': '11편', 'title': '해양플랜트산업지원센터\n거세 센터에서는\n무슨일을 할까?2편', 'img': 'assets/images/C_11.png'},
-  
+  {
+    'num': '8편',
+    'title': 'KRISO 신입사원 인터뷰\n크리소 입사했소!\n어떻게 입사했소?',
+    'img': 'assets/images/C_8.png',
+  },
+  {
+    'num': '9편',
+    'title': '실패를 두려워 하지 않는\n올해의 KRISO인\n홍사영 책임연구원',
+    'img': 'assets/images/C_9.png',
+  },
+  {
+    'num': '10편',
+    'title': '해양플랜트산업지원센터\n거세 센터에서는\n무슨일을 할까?1편',
+    'img': 'assets/images/C_10.png',
+  },
+  {
+    'num': '11편',
+    'title': '해양플랜트산업지원센터\n거세 센터에서는\n무슨일을 할까?2편',
+    'img': 'assets/images/C_11.png',
+  },
 ];
 
 final List<Map<String, String>> seriesD = [
   {'num': '1편', 'title': 'KRISO 설립\n50주년 기념영상', 'img': 'assets/images/D_1.png'},
-  {'num': '2편', 'title': 'KRISO 50년 성과\n및 비전 선포 영상', 'img': 'assets/images/D_2.png'},
-  {'num': '3편', 'title': '선박해양플랜트연구소\n홍보 및 브랜드 영상', 'img': 'assets/images/D_3.png'},
+  {
+    'num': '2편',
+    'title': 'KRISO 50년 성과\n및 비전 선포 영상',
+    'img': 'assets/images/D_2.png',
+  },
+  {
+    'num': '3편',
+    'title': '선박해양플랜트연구소\n홍보 및 브랜드 영상',
+    'img': 'assets/images/D_3.png',
+  },
   {'num': '4편', 'title': '해양플랜트산업지원센터\n- 거제', 'img': 'assets/images/D_4.png'},
   {'num': '5편', 'title': '해수에너지연구센터\n- 고성', 'img': 'assets/images/D_5.png'},
   {'num': '6편', 'title': '자율운항선박실증연구센터\n- 울산', 'img': 'assets/images/D_6.png'},

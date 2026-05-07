@@ -20,9 +20,9 @@ class ActionButtonModel {
       );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'text': text,
-        'nextStepId': nextStepId,
-        'isPrimary': isPrimary,
-      };
+    'id': id,
+    'text': text,
+    'nextStepId': nextStepId,
+    'isPrimary': isPrimary,
+  };
 }

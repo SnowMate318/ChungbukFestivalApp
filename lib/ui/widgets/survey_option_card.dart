@@ -22,7 +22,8 @@ class SurveyOptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final bool isSelected = uiController.selectedOption.value == option.id ||
+      final bool isSelected =
+          uiController.selectedOption.value == option.id ||
           uiController.selectedOptions.contains(option.id);
 
       // ✅ 카드 형태 구분
@@ -50,38 +51,43 @@ class SurveyOptionCard extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 9.sp,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w500,
                           color: HColor.black,
                         ),
                       ),
                       SizedBox(height: 36.h),
 
                       // ✅ 설명 텍스트 (option.id에 따라 다르게 표시)
-                     Builder(
+                      Builder(
                         builder: (_) {
                           final Map<String, String> descMap = {
-                            'content1': '선박해양플랜트연구소(KRISO)의\n'
+                            'content1':
+                                '선박해양플랜트연구소(KRISO)의\n'
                                 '특별한 연구주제들을 So-Easy하게\n'
                                 '설명해주는 크리소~이지!\n'
                                 '"크리소이지"시리즈가 여러분들을\n'
                                 '해양 지식 전문가로 만들어드립니다!',
-                            'content2': '연구소 안팎의 모든 순간을 한눈에!\n'
+                            'content2':
+                                '연구소 안팎의 모든 순간을 한눈에!\n'
                                 '행사 현장부터\n'
                                 '연구소 직원들의 일상을\n'
                                 '생생한 이야기로 전해드립니다!',
-                            'content3': 'KRISO의 다양한\n'
+                            'content3':
+                                'KRISO의 다양한\n'
                                 '연구 분야와 직무 이야기까지!\n'
                                 '연구원들의 목소리로 전하는\n'
                                 'KRISO 인터뷰를 확인해보세요!',
-                            'content4': 'KRISO의 연구시설과\n'
+                            'content4':
+                                'KRISO의 연구시설과\n'
                                 '주요 연구 성과, 지역거점,\n'
                                 '설립 50년 간의 발자취 등을\n'
                                 '한 곳에서 만나보세요!',
                           };
 
-                          final description = descMap[option.id] ??
+                          final description =
+                              descMap[option.id] ??
                               '선박해양플랜트연구소(KRISO)의 특별한 연구주제들을 So~Easy하게 설명해주는 크리소~이지!21\n'
-                              '“크리소이지” 시리즈가 여러분을 해양 지식 전문가로 만들어드립니다!';
+                                  '“크리소이지” 시리즈가 여러분을 해양 지식 전문가로 만들어드립니다!';
 
                           return Text(
                             description,
@@ -90,13 +96,12 @@ class SurveyOptionCard extends StatelessWidget {
                               fontSize: 6.sp,
                               color: HColor.black,
                               height: 1.4,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w500,
                             ),
                           );
-
                         },
                       ),
-                     
+
                       SizedBox(height: 20.h),
 
                       // 닫기 버튼
@@ -111,10 +116,7 @@ class SurveyOptionCard extends StatelessWidget {
                         onPressed: () => Get.back(),
                         child: Text(
                           '닫기',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 5.sp,
-                          ),
+                          style: TextStyle(color: Colors.white, fontSize: 5.sp),
                         ),
                       ),
                     ],
@@ -130,20 +132,21 @@ class SurveyOptionCard extends StatelessWidget {
 
           // ✅ 단계 타입별로 다르게 적용
           decoration: isDoubleRow
-            ? const BoxDecoration()
-            : BoxDecoration(
-                color: isSelected ? HColor.blue1 : HColor.gray1, // ✅ 회색 배경
-                borderRadius: BorderRadius.circular(option.borderRadius ?? 20.r),
-                boxShadow: [
-                  // if (isSelected)
-                  //   BoxShadow(
-                  //     color: Colors.black.withOpacity(0.12),
-                  //     blurRadius: 6,
-                  //     offset: const Offset(0, 2),
-                  //   ),
-                ],
-              ),
-
+              ? const BoxDecoration()
+              : BoxDecoration(
+                  color: isSelected ? HColor.blue1 : HColor.gray1, // ✅ 회색 배경
+                  borderRadius: BorderRadius.circular(
+                    option.borderRadius ?? 20.r,
+                  ),
+                  boxShadow: [
+                    // if (isSelected)
+                    //   BoxShadow(
+                    //     color: Colors.black.withOpacity(0.12),
+                    //     blurRadius: 6,
+                    //     offset: const Offset(0, 2),
+                    //   ),
+                  ],
+                ),
 
           // 내부 위젯
           width: isDoubleRow ? 140.w : double.infinity,
@@ -155,7 +158,6 @@ class SurveyOptionCard extends StatelessWidget {
           ),
         ),
       );
-
     });
   }
 
@@ -167,13 +169,17 @@ class SurveyOptionCard extends StatelessWidget {
       return String.fromCharCode(baseCode + number - 1);
     }
 
-    String displayNumber = toCircledNumber(int.tryParse(option.id.toString()) ?? 1);
+    String displayNumber = toCircledNumber(
+      int.tryParse(option.id.toString()) ?? 1,
+    );
 
     return SizedBox(
       height: 220.h, // ✅ 모든 카드 높이를 통일 (필요 시 200~240.h로 조절)
       child: Container(
         alignment: Alignment.center,
-        padding: option.padding ?? EdgeInsets.symmetric(horizontal: 5.w, vertical: 6.h),
+        padding:
+            option.padding ??
+            EdgeInsets.symmetric(horizontal: 5.w, vertical: 6.h),
 
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -186,7 +192,7 @@ class SurveyOptionCard extends StatelessWidget {
               displayNumber,
               style: TextStyle(
                 fontSize: 10.sp,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
                 color: isSelected ? HColor.white : HColor.gray3,
               ),
             ),
@@ -203,7 +209,7 @@ class SurveyOptionCard extends StatelessWidget {
               ),
               style: TextStyle(
                 fontSize: option.fontSize ?? 5.sp,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
                 color: isSelected ? HColor.white : HColor.gray3,
                 height: 1.3,
               ),
@@ -227,8 +233,9 @@ class SurveyOptionCard extends StatelessWidget {
                           textAlign: TextAlign.left,
                           style: TextStyle(
                             fontSize: (option.fontSize ?? 5.sp) - 0.5.sp,
-                            fontWeight: FontWeight.bold,
-                            color: (isSelected ? HColor.white : HColor.gray3).withOpacity(0.9),
+                            fontWeight: FontWeight.w500,
+                            color: (isSelected ? HColor.white : HColor.gray3)
+                                .withOpacity(0.9),
                             height: 1.3,
                           ),
                         ),
@@ -251,8 +258,9 @@ class SurveyOptionCard extends StatelessWidget {
                     ),
                     style: TextStyle(
                       fontSize: (option.fontSize ?? 5.sp) - 1.sp,
-                      fontWeight: FontWeight.bold,
-                      color: (isSelected ? HColor.white : HColor.gray3).withOpacity(0.8),
+                      fontWeight: FontWeight.w500,
+                      color: (isSelected ? HColor.white : HColor.gray3)
+                          .withOpacity(0.8),
                       height: 1.3,
                     ),
                   ),
@@ -286,14 +294,14 @@ class SurveyOptionCard extends StatelessWidget {
                   // 이미지가 제목 박스와 겹치지 않도록 아주 살짝만 띄움(선택)
                   padding: EdgeInsets.only(bottom: 2.h),
                   child: FittedBox(
-                    fit: BoxFit.contain,     // ✅ 비율 유지, 부모 영역 안에서 최대
+                    fit: BoxFit.contain, // ✅ 비율 유지, 부모 영역 안에서 최대
                     alignment: Alignment.center,
                     child: SizedBox(
                       width: constraints.maxWidth,
                       height: constraints.maxHeight,
                       child: Image.asset(
                         option.imageUrl ?? '',
-                        fit: BoxFit.contain,  // 안전하게 contain 유지
+                        fit: BoxFit.contain, // 안전하게 contain 유지
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
                             color: Colors.grey[200],
@@ -340,7 +348,7 @@ class SurveyOptionCard extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 7.sp,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w500,
               color: isSelected ? HColor.white : HColor.gray4,
             ),
           ),

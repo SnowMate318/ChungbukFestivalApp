@@ -44,7 +44,7 @@ Widget buildEpisodeCard({
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 6.sp,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               SizedBox(height: 3.h),
@@ -56,7 +56,7 @@ Widget buildEpisodeCard({
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 6.sp,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),

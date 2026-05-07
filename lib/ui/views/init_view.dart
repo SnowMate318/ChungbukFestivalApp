@@ -26,13 +26,7 @@ class InitView extends StatelessWidget {
         ),
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildTop(),
-            _buildMiddle(),
-            _buildBottom(),
-          ],
-        ),
+        child: Column(children: [_buildTop(), _buildMiddle(), _buildBottom()]),
       ),
     );
   }

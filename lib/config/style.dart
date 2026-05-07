@@ -29,160 +29,135 @@ class HColor {
   static const Color red2 = Color(0xFFFFAAAA);
   static const Color red3 = Color(0xFFFF0000);
   static const Color pink1 = Color(0xFFFFB6C1);
-
 }
 
 class HText {
   static final header1SB = TextStyle(
     fontSize: 24.sp,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
   );
   static final title1SB = TextStyle(
     fontSize: 22.sp,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
   );
   static final title1M = TextStyle(
     fontSize: 22.sp,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w400,
   );
   static final title1R = TextStyle(
     fontSize: 22.sp,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w300,
   );
   static final title2SB = TextStyle(
     fontSize: 20.sp,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
   );
   static final title2M = TextStyle(
     fontSize: 20.sp,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w400,
   );
   static final title2R = TextStyle(
     fontSize: 20.sp,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w300,
   );
   static final subtitle1SB = TextStyle(
     fontSize: 18.sp,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
   );
   static final subtitle1M = TextStyle(
     fontSize: 18.sp,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w400,
   );
   static final subtitle1R = TextStyle(
     fontSize: 18.sp,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w300,
   );
   static final subtitle2SB = TextStyle(
     fontSize: 17.sp,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
   );
   static final subtitle2M = TextStyle(
     fontSize: 17.sp,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w400,
   );
   static final subtitle2R = TextStyle(
     fontSize: 17.sp,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w300,
   );
   static final subtitle3SB = TextStyle(
     fontSize: 16.sp,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
   );
   static final subtitle3M = TextStyle(
     fontSize: 16.sp,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w400,
   );
   static final subtitle3R = TextStyle(
     fontSize: 16.sp,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w300,
   );
   static final body1SB = TextStyle(
     fontSize: 15.sp,
-    fontWeight: FontWeight.w600,
-  );
-  static final body1M = TextStyle(
-    fontSize: 15.sp,
     fontWeight: FontWeight.w500,
   );
-  static final body1R = TextStyle(
-    fontSize: 15.sp,
-    fontWeight: FontWeight.w400,
-  );
+  static final body1M = TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w400);
+  static final body1R = TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w300);
   static final body2SB = TextStyle(
     fontSize: 14.sp,
-    fontWeight: FontWeight.w600,
-  );
-  static final body2M = TextStyle(
-    fontSize: 14.sp,
     fontWeight: FontWeight.w500,
   );
-  static final body2R = TextStyle(
-    fontSize: 14.sp,
-    fontWeight: FontWeight.w400,
-  );
+  static final body2M = TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400);
+  static final body2R = TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w300);
   static final body3SB = TextStyle(
     fontSize: 13.sp,
-    fontWeight: FontWeight.w600,
-  );
-  static final body3M = TextStyle(
-    fontSize: 13.sp,
     fontWeight: FontWeight.w500,
   );
-  static final body3R = TextStyle(
-    fontSize: 13.sp,
-    fontWeight: FontWeight.w400,
-  );
+  static final body3M = TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w400);
+  static final body3R = TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w300);
   static final body4SB = TextStyle(
     fontSize: 12.sp,
-    fontWeight: FontWeight.w600,
-  );
-  static final body4M = TextStyle(
-    fontSize: 12.sp,
     fontWeight: FontWeight.w500,
   );
-  static final body4R = TextStyle(
-    fontSize: 12.sp,
-    fontWeight: FontWeight.w400,
-  );
+  static final body4M = TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w400);
+  static final body4R = TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w300);
   static final caption1SB = TextStyle(
     fontSize: 11.sp,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
   );
   static final caption1M = TextStyle(
     fontSize: 11.sp,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w400,
   );
   static final caption1R = TextStyle(
     fontSize: 11.sp,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w300,
   );
   static final caption2SB = TextStyle(
     fontSize: 10.sp,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
   );
   static final caption2M = TextStyle(
     fontSize: 10.sp,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w400,
   );
   static final caption2R = TextStyle(
     fontSize: 10.sp,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w300,
   );
   static final caption3SB = TextStyle(
     fontSize: 9.sp,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
   );
   static final caption3M = TextStyle(
     fontSize: 9.sp,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w400,
   );
   static final caption3R = TextStyle(
     fontSize: 9.sp,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w300,
   );
   static final caption4R = TextStyle(
     fontSize: 8.sp,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w300,
   );
 }

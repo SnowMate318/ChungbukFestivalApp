@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:greenfestival/data/models/festival_admin_models.dart';
 import 'package:greenfestival/data/models/seed_qr_payload.dart';
+import 'package:greenfestival/platform/external_url_launcher.dart';
 import 'package:greenfestival/platform/web_camera_context.dart';
 import 'package:greenfestival/services/festival_firestore_service.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart' as qr_plus;
@@ -51,9 +52,22 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
     setState(() => _isScanning = false);
   }
 
-  void _showLeafletMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('축제 리플렛은 문자로 받은 링크에서 확인해 주세요.')),
+  String _leafletImageUrl() {
+    if (_webCameraContext.isWeb) {
+      return Uri.base.resolve('/openfiles/introduce2.jpg').toString();
+    }
+    return 'https://greenfestival-5320b.web.app/openfiles/introduce2.jpg';
+  }
+
+  Future<void> _showLeafletMessage() async {
+    if (!mounted) return;
+    final opened = await openExternalUrl(_leafletImageUrl());
+    if (opened || !mounted) return;
+
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => _LeafletImagePage(imageUrl: _leafletImageUrl()),
+      ),
     );
   }
 
@@ -117,8 +131,12 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
 
     _handlingDetectedCode = true;
     try {
-      final payload = SeedQrPayload.tryParse(rawValue);
-      if (payload == null) {
+      final rawSeedUid = rawValue.trim();
+      final payload = SeedQrPayload.tryParse(rawSeedUid);
+      final seed =
+          seedByUid[rawSeedUid] ??
+          (payload == null ? null : seedByUid[payload.seedUid]);
+      if (seed == null && payload == null) {
         if (mounted) {
           setState(() {
             _scanMessage = '인식한 QR 코드가 부스 등록용 형식이 아니에요.';
@@ -128,7 +146,6 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
         return;
       }
 
-      final seed = seedByUid[payload.seedUid];
       if (seed == null) {
         if (mounted) {
           setState(() {
@@ -607,7 +624,7 @@ class FestivalHeader extends StatelessWidget {
                           style: TextStyle(
                             color: Color(0xff287c42),
                             fontSize: 18,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: FontWeight.w500,
                             height: 0.95,
                           ),
                         ),
@@ -626,7 +643,7 @@ class FestivalHeader extends StatelessWidget {
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 8,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
@@ -637,7 +654,7 @@ class FestivalHeader extends StatelessWidget {
                       style: TextStyle(
                         color: Color(0xffd45f72),
                         fontSize: 19,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w500,
                         height: 1,
                       ),
                     ),
@@ -653,7 +670,7 @@ class FestivalHeader extends StatelessWidget {
             style: TextStyle(
               color: Color(0xff4c8d62),
               fontSize: 25,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w500,
               height: 1,
             ),
           ),
@@ -663,7 +680,7 @@ class FestivalHeader extends StatelessWidget {
             style: TextStyle(
               color: Color(0xff536b52),
               fontSize: 10,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -845,7 +862,7 @@ class SeedSummaryHeader extends StatelessWidget {
                 style: const TextStyle(
                   color: Colors.black,
                   fontSize: 28,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                   height: 1,
                 ),
               ),
@@ -855,7 +872,7 @@ class SeedSummaryHeader extends StatelessWidget {
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 20,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 7),
@@ -864,7 +881,7 @@ class SeedSummaryHeader extends StatelessWidget {
                 style: TextStyle(
                   color: Color(0xff343434),
                   fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -888,7 +905,7 @@ class SeedSummaryHeader extends StatelessWidget {
                       style: const TextStyle(
                         color: Colors.black,
                         fontSize: 28,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w500,
                         height: 1,
                       ),
                     ),
@@ -944,8 +961,8 @@ class BoothSeedCard extends StatelessWidget {
                   booth.name,
                   style: const TextStyle(
                     color: Colors.black,
-                    fontSize:  20,
-                    fontWeight: FontWeight.w900,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
                     height: 1,
                   ),
                 ),
@@ -956,7 +973,7 @@ class BoothSeedCard extends StatelessWidget {
                     style: const TextStyle(
                       color: Colors.black,
                       fontSize: 16,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                       height: 1.3,
                     ),
                   ),
@@ -1160,7 +1177,7 @@ class _ScannerPanelState extends State<ScannerPanel>
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: 20,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -1219,7 +1236,7 @@ class _ScannerPanelState extends State<ScannerPanel>
                         style: const TextStyle(
                           color: Colors.black,
                           fontSize: 20,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(height: 5),
@@ -1229,7 +1246,7 @@ class _ScannerPanelState extends State<ScannerPanel>
                         style: const TextStyle(
                           color: Color(0xff5f6b60),
                           fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       if (widget.blockedReason == null &&
@@ -1278,7 +1295,7 @@ class _ScannerErrorCard extends StatelessWidget {
             style: const TextStyle(
               color: Colors.white,
               fontSize: 18,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
               height: 1.4,
             ),
           ),
@@ -1327,7 +1344,7 @@ class ScannerBoothButton extends StatelessWidget {
                       style: const TextStyle(
                         color: Colors.black,
                         fontSize: 20,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     Text(
@@ -1337,7 +1354,7 @@ class ScannerBoothButton extends StatelessWidget {
                             ? const Color(0xff8c8c8c)
                             : const Color(0xff3f8f35),
                         fontSize: 16,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
@@ -1352,7 +1369,7 @@ class ScannerBoothButton extends StatelessWidget {
                       ? const Color(0xff8c8c8c)
                       : const Color(0xff3f8f35),
                   fontSize: 20,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -1426,7 +1443,7 @@ class SubmitPage extends StatelessWidget {
                                       style: const TextStyle(
                                         color: Colors.black,
                                         fontSize: 28,
-                                        fontWeight: FontWeight.w900,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                     const Text(
@@ -1434,7 +1451,7 @@ class SubmitPage extends StatelessWidget {
                                       style: TextStyle(
                                         color: Colors.black,
                                         fontSize: 24,
-                                        fontWeight: FontWeight.w900,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                     const SizedBox(height: 16),
@@ -1453,7 +1470,7 @@ class SubmitPage extends StatelessWidget {
                                       style: const TextStyle(
                                         color: Color(0xff303030),
                                         fontSize: 32,
-                                        fontWeight: FontWeight.w900,
+                                        fontWeight: FontWeight.w500,
                                         height: 1,
                                       ),
                                     ),
@@ -1466,7 +1483,7 @@ class SubmitPage extends StatelessWidget {
                                       style: TextStyle(
                                         color: Colors.black,
                                         fontSize: 20,
-                                        fontWeight: FontWeight.w900,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                     const SizedBox(height: 6),
@@ -1475,23 +1492,45 @@ class SubmitPage extends StatelessWidget {
                                       style: const TextStyle(
                                         color: Color(0xff3f8f35),
                                         fontSize: 20,
-                                        fontWeight: FontWeight.w900,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                     const SizedBox(height: 32),
-                                    SizedBox(
-                                      width: 132,
-                                      height: 34,
-                                      child: FilledActionButton(
-                                        label: isSubmitted ? '제출완료' : '시드 제출하기',
-                                        onPressed: isSubmitted
-                                            ? null
-                                            : () async {
-                                                await onSubmit();
-                                                if (!context.mounted) return;
-                                                Navigator.of(context).pop();
-                                              },
-                                      ),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: SizedBox(
+                                            height: 34,
+                                            child: OutlinedActionButton(
+                                              label: '뒤로가기',
+                                              onPressed: () =>
+                                                  Navigator.of(context).pop(),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: SizedBox(
+                                            height: 34,
+                                            child: FilledActionButton(
+                                              label: isSubmitted
+                                                  ? '제출완료'
+                                                  : '시드 제출하기',
+                                              onPressed: isSubmitted
+                                                  ? null
+                                                  : () async {
+                                                      await onSubmit();
+                                                      if (!context.mounted) {
+                                                        return;
+                                                      }
+                                                      Navigator.of(
+                                                        context,
+                                                      ).pop();
+                                                    },
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -1557,7 +1596,7 @@ class _StateShell extends StatelessWidget {
                                     style: const TextStyle(
                                       color: Colors.black,
                                       fontSize: 24,
-                                      fontWeight: FontWeight.w900,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -1567,7 +1606,7 @@ class _StateShell extends StatelessWidget {
                                     style: const TextStyle(
                                       color: Color(0xff4f4f4f),
                                       fontSize: 20,
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.w500,
                                       height: 1.45,
                                     ),
                                   ),
@@ -1633,7 +1672,7 @@ class FilledActionButton extends StatelessWidget {
         fit: BoxFit.scaleDown,
         child: Text(
           label,
-          style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w400),
+          style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w300),
         ),
       ),
     );
@@ -1669,7 +1708,7 @@ class OutlinedActionButton extends StatelessWidget {
           fit: BoxFit.scaleDown,
           child: Text(
             label,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
           ),
         ),
       ),
@@ -1686,6 +1725,52 @@ class DottedDivider extends StatelessWidget {
       width: double.infinity,
       height: 1,
       child: CustomPaint(painter: DottedDividerPainter()),
+    );
+  }
+}
+
+class _LeafletImagePage extends StatelessWidget {
+  const _LeafletImagePage({required this.imageUrl});
+
+  final String imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: const Text('행사 리플렛'),
+      ),
+      body: InteractiveViewer(
+        minScale: 1,
+        maxScale: 4,
+        child: Center(
+          child: Image.network(
+            imageUrl,
+            fit: BoxFit.contain,
+            loadingBuilder: (context, child, progress) {
+              if (progress == null) return child;
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    '리플렛 이미지를 불러오지 못했어요.\n배포 후 다시 확인해 주세요.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 }

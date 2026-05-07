@@ -158,7 +158,7 @@ class _GenderOptionButton extends StatelessWidget {
           style: TextStyle(
             color: selected ? Colors.white : Colors.black,
             fontSize: 34,
-            fontWeight: FontWeight.w900,
+            fontWeight: FontWeight.w500,
             height: 1,
           ),
         ),

@@ -24,7 +24,7 @@ class StartOverButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(21),
           side: const BorderSide(color: Color(0xFF4B9238), width: 1.2),
         ),
-        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
       ),
       child: const Text('처음으로'),
     );

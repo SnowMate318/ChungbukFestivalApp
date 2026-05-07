@@ -59,7 +59,7 @@ class IntroView extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: titleFontSize,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                           height: 1.25,
                         ),
                       ),
@@ -68,8 +68,8 @@ class IntroView extends StatelessWidget {
                         width: buttonWidth,
                         height: buttonHeight,
                         child: ElevatedButton(
-                          onPressed:
-                              () => Get.toNamed(AppPages.PRIVACY_CONSENT),
+                          onPressed: () =>
+                              Get.toNamed(AppPages.PRIVACY_CONSENT),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _buttonColor,
                             foregroundColor: Colors.white,
@@ -85,7 +85,7 @@ class IntroView extends StatelessWidget {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: buttonTopFontSize,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w500,
                                   height: 1.0,
                                 ),
                               ),
@@ -94,7 +94,7 @@ class IntroView extends StatelessWidget {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: buttonMainFontSize,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w500,
                                   height: 1.0,
                                 ),
                               ),

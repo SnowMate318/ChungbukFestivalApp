@@ -69,7 +69,7 @@ class PrivacyConsentView extends StatelessWidget {
                                 style: TextStyle(
                                   color: Colors.black,
                                   fontSize: bodyFontSize * 1.05,
-                                  fontWeight: FontWeight.w900,
+                                  fontWeight: FontWeight.w500,
                                   height: 1.65,
                                 ),
                               ),
@@ -82,7 +82,7 @@ class PrivacyConsentView extends StatelessWidget {
                                 style: TextStyle(
                                   color: Colors.black,
                                   fontSize: bodyFontSize,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w500,
                                   height: 1.65,
                                 ),
                               ),
@@ -106,7 +106,7 @@ class PrivacyConsentView extends StatelessWidget {
                               '동의합니다.',
                               style: TextStyle(
                                 fontSize: buttonFontSize,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w500,
                                 height: 1,
                               ),
                             ),

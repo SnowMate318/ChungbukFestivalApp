@@ -164,7 +164,7 @@ class _CenterMessage extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: const Color(0xFF1F2C18),
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                   height: 1.14,
                   letterSpacing: -1.8,
                   fontSize: (width * 0.055).clamp(26, 58),
@@ -224,7 +224,7 @@ class _DisplayMetricCard extends StatelessWidget {
               color: accentColor,
               fontSize: 48,
               height: 1,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w500,
               letterSpacing: -1.2,
             ),
           ),
@@ -253,7 +253,6 @@ class _PersonalSeedCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const _CardChip(label: '내가 모은 황금 씨앗', color: Color(0xFF5E9733)),
-                
               ],
             ),
           ),
@@ -268,7 +267,7 @@ class _PersonalSeedCard extends StatelessWidget {
                     color: Color(0xFF27301A),
                     fontSize: 48,
                     height: 1,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w500,
                     letterSpacing: -1.2,
                   ),
                 ),
@@ -354,7 +353,7 @@ class _CardChip extends StatelessWidget {
           label,
           style: const TextStyle(
             color: Colors.white,
-            fontWeight: FontWeight.w900,
+            fontWeight: FontWeight.w500,
             letterSpacing: -0.2,
           ),
         ),

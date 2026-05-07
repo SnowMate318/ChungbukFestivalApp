@@ -27,7 +27,7 @@ class NicknameBadge extends StatelessWidget {
           style: const TextStyle(
             color: Color(0xFF347C2A),
             fontSize: 14,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w500,
             height: 1,
           ),
         ),

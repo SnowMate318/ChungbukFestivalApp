@@ -34,14 +34,21 @@ class SurveyBottomButtons extends StatelessWidget {
             width: 60.w,
             height: 50.h,
             child: isPrimary
-                ? Obx(() => ElevatedButton(
+                ? Obx(
+                    () => ElevatedButton(
                       onPressed: uiController.isNextEnabled.value
                           ? () {
-                            print(action.id);
+                              print(action.id);
                               if (action.id == 'prev') {
-                                uiController.onNext(action.nextStepId, actionId: action.id);
+                                uiController.onNext(
+                                  action.nextStepId,
+                                  actionId: action.id,
+                                );
                               } else {
-                                uiController.onNext(action.nextStepId, actionId: action.id);
+                                uiController.onNext(
+                                  action.nextStepId,
+                                  actionId: action.id,
+                                );
                               }
                             }
                           : null,
@@ -56,17 +63,24 @@ class SurveyBottomButtons extends StatelessWidget {
                         action.text,
                         style: TextStyle(
                           color: textColor,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                           fontSize: 10.sp,
                         ),
                       ),
-                    ))
+                    ),
+                  )
                 : ElevatedButton(
                     onPressed: () {
                       if (action.id == 'prev') {
-                        uiController.onNext(action.nextStepId, actionId: action.id);
+                        uiController.onNext(
+                          action.nextStepId,
+                          actionId: action.id,
+                        );
                       } else {
-                        uiController.onNext(action.nextStepId, actionId: action.id);
+                        uiController.onNext(
+                          action.nextStepId,
+                          actionId: action.id,
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -80,7 +94,7 @@ class SurveyBottomButtons extends StatelessWidget {
                       action.text,
                       style: TextStyle(
                         color: textColor,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                         fontSize: 10.sp,
                       ),
                     ),

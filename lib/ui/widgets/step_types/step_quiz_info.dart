@@ -30,18 +30,14 @@ class QuizInfoView extends StatelessWidget {
               step.title ?? '',
               style: TextStyle(
                 fontSize: 12.sp,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
                 color: accentColor,
               ),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 2.h),
             if (imageUrl != null)
-              Image.asset(
-                imageUrl,
-                width: 250.w,
-                fit: BoxFit.contain,
-              ),
+              Image.asset(imageUrl, width: 250.w, fit: BoxFit.contain),
             SizedBox(height: 20.h),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -67,10 +63,7 @@ class QuizInfoView extends StatelessWidget {
               },
               child: Text(
                 step.actions?.first.text ?? '다음',
-                style: TextStyle(
-                  fontSize: 5.sp,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 5.sp, fontWeight: FontWeight.w500),
               ),
             ),
           ],
@@ -78,7 +71,6 @@ class QuizInfoView extends StatelessWidget {
       ),
     );
   }
-
 
   Color _getAccentColor(String? key) {
     switch (key) {

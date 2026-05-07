@@ -41,17 +41,13 @@ class StepOrderComplete extends StatelessWidget {
                 step.title ?? '',
                 style: TextStyle(
                   fontSize: 8.sp,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                   color: HColor.black,
                 ),
               ),
               SizedBox(height: 30.h),
               if (imageUrl != null)
-                Image.asset(
-                  imageUrl,
-                  width: 200.w,
-                  fit: BoxFit.contain,
-                ),
+                Image.asset(imageUrl, width: 200.w, fit: BoxFit.contain),
 
               SizedBox(height: 80.h),
               // === 버튼 그룹 ===
@@ -119,11 +115,10 @@ class StepOrderComplete extends StatelessWidget {
           style: TextStyle(
             color: textColor,
             fontSize: 5.sp,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),
     );
   }
-
 }

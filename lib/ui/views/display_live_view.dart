@@ -7,6 +7,8 @@ import 'package:greenfestival/services/festival_firestore_service.dart';
 import 'display_live_video_background_stub.dart'
     if (dart.library.html) 'display_live_video_background_web.dart';
 
+const double _displayTextScale = 0.61;
+
 class DisplayLiveView extends StatelessWidget {
   const DisplayLiveView({super.key});
 
@@ -117,10 +119,13 @@ class _WideDisplayLayout extends StatelessWidget {
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
         final sideMargin = (width * 0.016).clamp(20.0, 48.0);
-        final cardWidth = (width * 0.22).clamp(270.0, 430.0);
-        final cardHeight = (height * 0.54).clamp(330.0, 560.0);
-        final cardTop = math.max(0.0, (height - cardHeight) / 2);
-        final titleTop = (height * 0.18).clamp(88.0, 210.0);
+        final cardWidth = (width * 0.15).clamp(180.0, 300.0);
+        final cardHeight = (height * 0.36).clamp(220.0, 368.0);
+        final cardTop = math.max(
+          0.0,
+          ((height - cardHeight) / 2) + (height * 0.05),
+        );
+        final titleTop = ((height * 0.18).clamp(88.0, 210.0)) + (height * 0.08);
 
         return Stack(
           children: [
@@ -258,7 +263,7 @@ class _HeroTitle extends StatelessWidget {
                         color: const Color(0xFF2E8B50),
                         fontSize: quoteSize,
                         height: 1,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -277,7 +282,7 @@ class _HeroTitle extends StatelessWidget {
                           color: const Color(0xFF4B4E50),
                           fontSize: titleSize,
                           height: 1.12,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w600,
                         ),
                         children: [
                           TextSpan(
@@ -301,7 +306,7 @@ class _HeroTitle extends StatelessWidget {
                         color: const Color(0xFF2E8B50),
                         fontSize: quoteSize,
                         height: 1,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -371,16 +376,15 @@ class _SeedCountCard extends StatelessWidget {
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
         final seedSize = math.min(width, height) * 0.19;
-        final titleSize = (width * 0.112 * titleFontScale).clamp(25.0, 44.0);
-        final countSize = (width * 0.14).clamp(34.0, 58.0);
+        final countSize = (width * 0.102 * titleFontScale).clamp(25.0, 44.0);
         final verticalGap = (height * 0.042).clamp(12.0, 26.0);
 
         return Container(
           padding: EdgeInsets.fromLTRB(
-            (width * 0.095).clamp(22.0, 36.0),
-            (height * 0.095).clamp(24.0, 44.0),
-            (width * 0.095).clamp(22.0, 36.0),
-            (height * 0.08).clamp(22.0, 36.0),
+            (width * 0.065).clamp(16.0, 28.0),
+            (height * 0.065).clamp(16.0, 32.0),
+            (width * 0.065).clamp(16.0, 28.0),
+            (height * 0.06).clamp(16.0, 30.0),
           ),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.88),
@@ -404,13 +408,7 @@ class _SeedCountCard extends StatelessWidget {
                 filterQuality: FilterQuality.high,
               ),
               SizedBox(height: verticalGap),
-              _CardTitle(parts: title, fontSize: titleSize),
-              SizedBox(height: verticalGap * 0.75),
-              Icon(
-                Icons.arrow_drop_down_rounded,
-                size: countSize * 0.88,
-                color: const Color(0xFF2E8B50),
-              ),
+              _CardTitle(parts: title, fontSize: countSize),
               SizedBox(height: verticalGap * 0.28),
               _BracketSeedCount(seedCount: seedCount, fontSize: countSize),
             ],
@@ -449,7 +447,7 @@ class _CardTitle extends StatelessWidget {
         style: TextStyle(
           fontSize: fontSize,
           height: 1.18,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.w600,
         ),
         children: children,
       ),
@@ -473,7 +471,7 @@ class _BracketSeedCount extends StatelessWidget {
           color: const Color(0xFF4B4E50),
           fontSize: fontSize,
           height: 1,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.w400,
         ),
       ),
     );

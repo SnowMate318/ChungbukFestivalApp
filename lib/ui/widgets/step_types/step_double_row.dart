@@ -24,7 +24,7 @@ class StepDoubleRow extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 6.sp,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w500,
               color: HColor.black,
             ),
           ),
@@ -39,10 +39,10 @@ class StepDoubleRow extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(), // ✅ 상위 스크롤과 겹치지 않게
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,           // ✅ 한 줄에 4개 고정
-              crossAxisSpacing: 6.w,      // 카드 간 간격
-              mainAxisSpacing: 4.h,       // 위아래 줄 간 간격
-              childAspectRatio: 1.2,       // ✅ 카드 비율 (1.2~1.4가 적당)
+              crossAxisCount: 4, // ✅ 한 줄에 4개 고정
+              crossAxisSpacing: 6.w, // 카드 간 간격
+              mainAxisSpacing: 4.h, // 위아래 줄 간 간격
+              childAspectRatio: 1.2, // ✅ 카드 비율 (1.2~1.4가 적당)
             ),
             itemCount: options.length,
             itemBuilder: (context, index) {

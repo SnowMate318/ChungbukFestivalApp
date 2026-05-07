@@ -265,7 +265,7 @@ class _NicknameInput extends StatelessWidget {
                       style: const TextStyle(
                         color: Colors.black,
                         fontSize: 34,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                         height: 1,
                       ),
                     ),
@@ -276,7 +276,7 @@ class _NicknameInput extends StatelessWidget {
                   style: TextStyle(
                     color: hasNickname ? Colors.black : const Color(0xFF9A9A9A),
                     fontSize: 34,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     height: 1,
                   ),
                 ),
@@ -485,7 +485,7 @@ class _TextKey extends StatelessWidget {
         style: const TextStyle(
           color: Colors.black,
           fontSize: 27,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w500,
           height: 1,
         ),
       ),
@@ -561,21 +561,21 @@ class _SpecialKey extends StatelessWidget {
 const _specialKeyTextStyle = TextStyle(
   color: Colors.black,
   fontSize: 17,
-  fontWeight: FontWeight.w600,
+  fontWeight: FontWeight.w500,
   height: 1,
 );
 
 const _spaceKeyTextStyle = TextStyle(
   color: Colors.black,
   fontSize: 18,
-  fontWeight: FontWeight.w600,
+  fontWeight: FontWeight.w500,
   height: 1,
 );
 
 const _completeKeyTextStyle = TextStyle(
   color: Colors.white,
   fontSize: 19,
-  fontWeight: FontWeight.w800,
+  fontWeight: FontWeight.w500,
   height: 1,
 );
 

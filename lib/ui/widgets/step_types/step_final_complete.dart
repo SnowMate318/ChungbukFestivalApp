@@ -38,12 +38,11 @@ class StepFinalCompleteView extends StatelessWidget {
 
           final selectedTitles = uiController.selectedTitles;
 
-          final items =
-              selectedTitles.asMap().entries.map((entry) {
-                final index = entry.key + 1;
-                final title = entry.value.isNotEmpty ? entry.value : '제목 없음';
-                return ReceiptItem('$title', 1);
-              }).toList();
+          final items = selectedTitles.asMap().entries.map((entry) {
+            final index = entry.key + 1;
+            final title = entry.value.isNotEmpty ? entry.value : '제목 없음';
+            return ReceiptItem('$title', 1);
+          }).toList();
 
           for (final item in items) {
             print('${item.title} (수량: ${item.qty})');
@@ -70,7 +69,7 @@ class StepFinalCompleteView extends StatelessWidget {
             step.title ?? '',
             style: TextStyle(
               fontSize: 12.sp,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w500,
               color: accentColor,
             ),
             textAlign: TextAlign.center,
@@ -112,7 +111,7 @@ class StepFinalCompleteView extends StatelessWidget {
             },
             child: Text(
               step.actions?.first.text ?? '처음으로',
-              style: TextStyle(fontSize: 5.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 5.sp, fontWeight: FontWeight.w500),
             ),
           ),
         ],

@@ -1,7 +1,10 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:greenfestival/data/models/festival_admin_models.dart';
+import 'package:greenfestival/data/models/festival_admin_reports.dart';
+import 'package:greenfestival/services/festival_excel_exporter.dart';
 import 'package:greenfestival/services/festival_firestore_service.dart';
 import 'package:intl/intl.dart';
 
@@ -32,9 +35,10 @@ const _residenceChoices = <FestivalSelectOption>[
 
 const _navItems = <_AdminNavItem>[
   _AdminNavItem(index: 1, label: '유저 정보 조회', icon: Icons.groups_rounded),
-  _AdminNavItem(index: 2, label: '인원 추가', icon: Icons.person_add_alt_1_rounded),
-  _AdminNavItem(index: 3, label: '부스 등록', icon: Icons.storefront_rounded),
-  _AdminNavItem(index: 4, label: '시드 수량 변경', icon: Icons.tune_rounded),
+  _AdminNavItem(index: 2, label: '부스 정보 조회', icon: Icons.query_stats_rounded),
+  _AdminNavItem(index: 3, label: '인원 추가', icon: Icons.person_add_alt_1_rounded),
+  _AdminNavItem(index: 4, label: '부스 등록', icon: Icons.storefront_rounded),
+  _AdminNavItem(index: 5, label: '시드 수량 변경', icon: Icons.tune_rounded),
 ];
 
 class AdminPage extends StatefulWidget {
@@ -82,10 +86,13 @@ class _AdminPageState extends State<AdminPage> {
 
   @override
   Widget build(BuildContext context) {
-    final maxContentWidth = _pageIndex == 1 ? 1680.0 : 1240.0;
+    final maxContentWidth = _pageIndex == 1 || _pageIndex == 2
+        ? 1680.0
+        : 1240.0;
     final pages = <Widget>[
       _HomeTab(service: _service, onSelect: _goToPage),
       _UsersTab(service: _service, onHome: () => _goToPage(0)),
+      _BoothsTab(service: _service, onHome: () => _goToPage(0)),
       _CreateUserTab(service: _service, onHome: () => _goToPage(0)),
       _SeedCatalogTab(service: _service, onHome: () => _goToPage(0)),
       _SeedEditorTab(service: _service, onHome: () => _goToPage(0)),
@@ -231,7 +238,7 @@ class _AdminPasswordGate extends StatelessWidget {
                 style: TextStyle(
                   color: _AdminPalette.ink,
                   fontSize: 24,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                   height: 1,
                 ),
               ),
@@ -242,7 +249,7 @@ class _AdminPasswordGate extends StatelessWidget {
                 style: TextStyle(
                   color: _AdminPalette.muted,
                   fontSize: 14,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                   height: 1.35,
                 ),
               ),
@@ -271,7 +278,7 @@ class _AdminPasswordGate extends StatelessWidget {
                 ),
                 child: const Text(
                   '확인',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
                 ),
               ),
             ],
@@ -295,6 +302,14 @@ class _UsersTab extends StatefulWidget {
 class _UsersTabState extends State<_UsersTab> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
+  List<FestivalUserFilterCondition> _filters = [];
+  List<FestivalUserSortCondition> _sorts = const [
+    FestivalUserSortCondition(
+      mode: FestivalUserSortMode.current,
+      direction: FestivalSortDirection.descending,
+    ),
+  ];
+  bool _exporting = false;
 
   @override
   void initState() {
@@ -310,18 +325,108 @@ class _UsersTabState extends State<_UsersTab> {
     super.dispose();
   }
 
-  List<FestivalUser> _filterUsers(List<FestivalUser> users) {
-    if (_query.isEmpty) return users;
-    return users.where((user) {
-      return [
-        user.nickname,
-        user.uid,
-        user.phoneNumber,
-        _displayGender(user),
-        _displayAge(user),
-        _displayResidence(user),
-      ].join(' ').toLowerCase().contains(_query);
-    }).toList();
+  FestivalUserReportFilters get _reportFilters {
+    return FestivalUserReportFilters(
+      query: _query,
+      filters: _filters,
+      sorts: _sorts,
+    );
+  }
+
+  void _resetFilters() {
+    _searchController.clear();
+    setState(() {
+      _query = '';
+      _filters = [];
+      _sorts = const [
+        FestivalUserSortCondition(
+          mode: FestivalUserSortMode.current,
+          direction: FestivalSortDirection.descending,
+        ),
+      ];
+    });
+  }
+
+  Future<void> _exportUsers(List<FestivalUser> users) async {
+    final confirmed = await _confirmExportDialog(context);
+    if (confirmed != true) return;
+    setState(() => _exporting = true);
+    try {
+      await FestivalExcelExporter.saveUsers(users);
+      if (!mounted) return;
+      _showSnack(context, '유저 정보 Excel 파일을 저장했습니다.');
+    } catch (error) {
+      if (!mounted) return;
+      _showSnack(context, '$error', isError: true);
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  Future<void> _openFilterDialog() async {
+    final nextFilters = await showDialog<List<FestivalUserFilterCondition>>(
+      context: context,
+      builder: (context) => _UserFilterDialog(initialFilters: _filters),
+    );
+    if (nextFilters == null || !mounted) return;
+    setState(() => _filters = nextFilters);
+  }
+
+  Future<void> _openSortDialog() async {
+    final nextSorts = await showDialog<List<FestivalUserSortCondition>>(
+      context: context,
+      builder: (context) => _UserSortDialog(initialSorts: _sorts),
+    );
+    if (nextSorts == null || !mounted) return;
+    setState(() => _sorts = nextSorts);
+  }
+
+  void _removeFilter(int index) {
+    setState(() => _filters = [..._filters]..removeAt(index));
+  }
+
+  void _removeSort(int index) {
+    setState(() => _sorts = [..._sorts]..removeAt(index));
+  }
+
+  Widget _buildHeader({required VoidCallback? onExport}) {
+    return _PanelHeading(
+      eyebrow: '참가자 목록',
+      title: '전체 유저 디렉터리',
+      subtitle: '닉네임, UID, 휴대폰 번호로 빠르게 검색할 수 있고, 실시간 스트림으로 최신 상태가 유지됩니다.',
+      trailing: _QueryActionToolbar(
+        searchController: _searchController,
+        searchHint: '닉네임, UID, 휴대폰 번호',
+        onFilter: _openFilterDialog,
+        onSort: _openSortDialog,
+        onReset: _resetFilters,
+        onExport: onExport,
+        exporting: _exporting,
+        exportLabel: '유저 정보 Export',
+      ),
+    );
+  }
+
+  Widget _buildConditionChips() {
+    final chips = <Widget>[
+      for (var index = 0; index < _filters.length; index += 1)
+        InputChip(
+          label: Text(_userFilterChipLabel(_filters[index])),
+          onDeleted: () => _removeFilter(index),
+        ),
+      for (var index = 0; index < _sorts.length; index += 1)
+        InputChip(
+          label: Text(
+            '정렬 ${index + 1}: ${_userSortLabel(_sorts[index].mode)} ${_directionLabel(_sorts[index].direction)}',
+          ),
+          onDeleted: () => _removeSort(index),
+        ),
+    ];
+    if (chips.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: Wrap(spacing: 8, runSpacing: 8, children: chips),
+    );
   }
 
   Future<void> _highlight(FestivalUser user) async {
@@ -355,86 +460,318 @@ class _UsersTabState extends State<_UsersTab> {
           ),
           const SizedBox(height: 20),
           _Panel(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _PanelHeading(
-                  eyebrow: '참가자 목록',
-                  title: '전체 유저 디렉터리',
-                  subtitle:
-                      '닉네임, UID, 휴대폰 번호로 빠르게 검색할 수 있고, 실시간 스트림으로 최신 상태가 유지됩니다.',
-                  trailing: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final stacked = constraints.maxWidth < 720;
-                      final controls = <Widget>[
-                        SizedBox(
-                          width: stacked ? double.infinity : 280,
-                          child: _ToolbarField(
-                            label: '검색',
-                            child: TextField(
-                              controller: _searchController,
-                              decoration: _inputDecoration('닉네임, UID, 휴대폰 번호'),
-                            ),
-                          ),
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: () => _searchController.clear(),
-                          icon: const Icon(Icons.refresh_rounded),
-                          label: const Text('검색 초기화'),
-                        ),
-                      ];
-                      return Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        alignment: WrapAlignment.end,
-                        children: controls,
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 18),
-                StreamBuilder<List<FestivalUser>>(
-                  stream: widget.service.watchUsers(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return _EmptyState(message: '${snapshot.error}');
-                    }
-                    if (!snapshot.hasData) {
-                      return const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _LiveBanner(text: '참가자 목록을 준비하고 있습니다.'),
-                          SizedBox(height: 18),
-                          _LoadingState(message: '유저 정보를 불러오는 중입니다.'),
-                        ],
-                      );
-                    }
+            child: StreamBuilder<List<FestivalUser>>(
+              stream: widget.service.watchUsers(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(onExport: null),
+                      _buildConditionChips(),
+                      const SizedBox(height: 18),
+                      _EmptyState(message: '${snapshot.error}'),
+                    ],
+                  );
+                }
+                if (!snapshot.hasData) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(onExport: null),
+                      _buildConditionChips(),
+                      const SizedBox(height: 18),
+                      const _LiveBanner(text: '참가자 목록을 준비하고 있습니다.'),
+                      const SizedBox(height: 18),
+                      const _LoadingState(message: '유저 정보를 불러오는 중입니다.'),
+                    ],
+                  );
+                }
 
-                    final allUsers = snapshot.data!;
-                    final users = _filterUsers(allUsers);
-                    final bannerText = _query.isEmpty
-                        ? '총 ${allUsers.length}명의 참여자가 실시간으로 반영됩니다.'
-                        : '검색 결과 ${users.length}명의 참여자가 표시되고 있습니다.';
+                final allUsers = snapshot.data!;
+                final users = filterAndSortFestivalUsers(
+                  allUsers,
+                  _reportFilters,
+                );
+                final bannerText =
+                    '조건에 맞는 ${users.length}명 / 전체 ${allUsers.length}명의 참여자가 표시되고 있습니다.';
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _LiveBanner(text: bannerText),
-                        const SizedBox(height: 18),
-                        if (users.isEmpty)
-                          const _EmptyState(message: '검색 조건에 맞는 참여자가 없습니다.')
-                        else
-                          _UsersTable(users: users, onHighlight: _highlight),
-                      ],
-                    );
-                  },
-                ),
-              ],
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(onExport: () => _exportUsers(users)),
+                    _buildConditionChips(),
+                    const SizedBox(height: 18),
+                    _LiveBanner(text: bannerText),
+                    const SizedBox(height: 18),
+                    if (users.isEmpty)
+                      const _EmptyState(message: '검색 조건에 맞는 참여자가 없습니다.')
+                    else
+                      _UsersTable(users: users, onHighlight: _highlight),
+                  ],
+                );
+              },
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+class _BoothsTab extends StatefulWidget {
+  const _BoothsTab({required this.service, required this.onHome});
+
+  final FestivalFirestoreService service;
+  final VoidCallback onHome;
+
+  @override
+  State<_BoothsTab> createState() => _BoothsTabState();
+}
+
+class _BoothsTabState extends State<_BoothsTab> {
+  List<FestivalBoothFilterCondition> _filters = [];
+  List<FestivalBoothSortCondition> _sorts = const [
+    FestivalBoothSortCondition(
+      mode: FestivalBoothSortMode.categoryName,
+      direction: FestivalSortDirection.ascending,
+    ),
+    FestivalBoothSortCondition(
+      mode: FestivalBoothSortMode.boothName,
+      direction: FestivalSortDirection.ascending,
+    ),
+  ];
+  bool _exporting = false;
+
+  FestivalBoothReportFilters get _reportFilters {
+    return FestivalBoothReportFilters(filters: _filters, sorts: _sorts);
+  }
+
+  void _resetFilters() {
+    setState(() {
+      _filters = [];
+      _sorts = const [
+        FestivalBoothSortCondition(
+          mode: FestivalBoothSortMode.categoryName,
+          direction: FestivalSortDirection.ascending,
+        ),
+        FestivalBoothSortCondition(
+          mode: FestivalBoothSortMode.boothName,
+          direction: FestivalSortDirection.ascending,
+        ),
+      ];
+    });
+  }
+
+  Future<void> _exportBooths(List<FestivalBoothSummaryRow> rows) async {
+    final confirmed = await _confirmExportDialog(context);
+    if (confirmed != true) return;
+    setState(() => _exporting = true);
+    try {
+      await FestivalExcelExporter.saveBooths(rows);
+      if (!mounted) return;
+      _showSnack(context, '부스 정보 Excel 파일을 저장했습니다.');
+    } catch (error) {
+      if (!mounted) return;
+      _showSnack(context, '$error', isError: true);
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  Future<void> _openFilterDialog(
+    List<({String uid, String name})> categories,
+  ) async {
+    final nextFilters = await showDialog<List<FestivalBoothFilterCondition>>(
+      context: context,
+      builder: (context) =>
+          _BoothFilterDialog(initialFilters: _filters, categories: categories),
+    );
+    if (nextFilters == null || !mounted) return;
+    setState(() => _filters = nextFilters);
+  }
+
+  Future<void> _openSortDialog() async {
+    final nextSorts = await showDialog<List<FestivalBoothSortCondition>>(
+      context: context,
+      builder: (context) => _BoothSortDialog(initialSorts: _sorts),
+    );
+    if (nextSorts == null || !mounted) return;
+    setState(() => _sorts = nextSorts);
+  }
+
+  void _removeFilter(int index) {
+    setState(() => _filters = [..._filters]..removeAt(index));
+  }
+
+  void _removeSort(int index) {
+    setState(() => _sorts = [..._sorts]..removeAt(index));
+  }
+
+  Widget _buildHeader({
+    required List<({String uid, String name})> categories,
+    required VoidCallback? onExport,
+  }) {
+    return _PanelHeading(
+      eyebrow: '부스 목록',
+      title: '카테고리 / 부스 별 시드 발행 현황',
+      subtitle: '카테고리와 부스별 황금씨앗 발행 갯수를 실시간 집계합니다.',
+      trailing: _QueryActionToolbar(
+        onFilter: () => _openFilterDialog(categories),
+        onSort: _openSortDialog,
+        onReset: _resetFilters,
+        onExport: onExport,
+        exporting: _exporting,
+        exportLabel: '부스 정보 Export',
+      ),
+    );
+  }
+
+  Widget _buildConditionChips(List<({String uid, String name})> categories) {
+    final chips = <Widget>[
+      for (var index = 0; index < _filters.length; index += 1)
+        InputChip(
+          label: Text(_boothFilterChipLabel(_filters[index], categories)),
+          onDeleted: () => _removeFilter(index),
+        ),
+      for (var index = 0; index < _sorts.length; index += 1)
+        InputChip(
+          label: Text(
+            '정렬 ${index + 1}: ${_boothSortLabel(_sorts[index].mode)} ${_directionLabel(_sorts[index].direction)}',
+          ),
+          onDeleted: () => _removeSort(index),
+        ),
+    ];
+    if (chips.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: Wrap(spacing: 8, runSpacing: 8, children: chips),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _PageScrollView(
+      child: Column(
+        children: [
+          _PageHeader(
+            eyebrow: '부스 정보 조회',
+            title: '카테고리와 부스별 시드 발행량을 확인하세요',
+            description:
+                '참여자별 적립 데이터를 합산해 부스별 황금씨앗 발행 갯수를 보여주고, 현재 조건 그대로 Excel로 저장할 수 있습니다.',
+            actionLabel: '메인으로 돌아가기',
+            actionIcon: Icons.home_rounded,
+            onAction: widget.onHome,
+          ),
+          const SizedBox(height: 20),
+          StreamBuilder<SeedCatalog>(
+            stream: widget.service.watchSeedCatalog(),
+            builder: (context, catalogSnapshot) {
+              if (catalogSnapshot.hasError) {
+                return _Panel(
+                  child: _EmptyState(message: '${catalogSnapshot.error}'),
+                );
+              }
+              if (!catalogSnapshot.hasData) {
+                return const _Panel(
+                  child: _LoadingState(message: '부스 정보를 불러오는 중입니다.'),
+                );
+              }
+
+              final catalog = catalogSnapshot.data!;
+              final categoryOptions = _categoryOptions(catalog);
+
+              return _Panel(
+                child: StreamBuilder<List<FestivalUser>>(
+                  stream: widget.service.watchUsers(),
+                  builder: (context, userSnapshot) {
+                    if (userSnapshot.hasError) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeader(
+                            categories: categoryOptions,
+                            onExport: null,
+                          ),
+                          _buildConditionChips(categoryOptions),
+                          const SizedBox(height: 18),
+                          _EmptyState(message: '${userSnapshot.error}'),
+                        ],
+                      );
+                    }
+                    if (!userSnapshot.hasData) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeader(
+                            categories: categoryOptions,
+                            onExport: null,
+                          ),
+                          _buildConditionChips(categoryOptions),
+                          const SizedBox(height: 18),
+                          const _LiveBanner(text: '부스별 발행 현황을 준비하고 있습니다.'),
+                          const SizedBox(height: 18),
+                          const _LoadingState(message: '유저 정보를 불러오는 중입니다.'),
+                        ],
+                      );
+                    }
+
+                    final users = userSnapshot.data!;
+                    final rows = buildFestivalBoothSummaryRows(
+                      users,
+                      catalog,
+                      _reportFilters,
+                    );
+                    final totalIssued = rows.fold<int>(
+                      0,
+                      (sum, row) => sum + row.issuedSeedCount,
+                    );
+                    final bannerText =
+                        '조건에 맞는 ${rows.length}개 부스에서 총 $totalIssued개의 시드가 발행되었습니다.';
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(
+                          categories: categoryOptions,
+                          onExport: catalog.seeds.isEmpty
+                              ? null
+                              : () => _exportBooths(rows),
+                        ),
+                        _buildConditionChips(categoryOptions),
+                        const SizedBox(height: 18),
+                        _LiveBanner(text: bannerText),
+                        const SizedBox(height: 18),
+                        if (rows.isEmpty)
+                          const _EmptyState(message: '조회 조건에 맞는 부스가 없습니다.')
+                        else
+                          _BoothsTable(rows: rows),
+                      ],
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<({String uid, String name})> _categoryOptions(SeedCatalog catalog) {
+    final options = <({String uid, String name})>[];
+    final seen = <String>{};
+    for (final category in catalog.categories) {
+      options.add((uid: category.uid, name: category.name));
+      seen.add(category.uid);
+    }
+    for (final seed in catalog.seeds) {
+      if (seen.add(seed.categoryUid)) {
+        options.add((uid: seed.categoryUid, name: seed.categoryName));
+      }
+    }
+    options.sort((a, b) => a.name.compareTo(b.name));
+    return options;
   }
 }
 
@@ -945,7 +1282,7 @@ class _SeedCatalogTabState extends State<_SeedCatalogTab> {
                             FilledButton.icon(
                               onPressed: _submitting ? null : _submit,
                               icon: const Icon(Icons.storefront_rounded),
-                              label: Text(_submitting ? '저장 중...' : '시드 등록하기'),
+                              label: Text(_submitting ? '저장 중...' : '부스 등록하기'),
                             ),
                             OutlinedButton.icon(
                               onPressed: _submitting ? null : _reset,
@@ -1584,7 +1921,7 @@ class _BrandMark extends StatelessWidget {
                 'CB',
                 style: TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                   letterSpacing: 1.2,
                 ),
               ),
@@ -1600,7 +1937,7 @@ class _BrandMark extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w500,
                       color: _AdminPalette.ink,
                     ),
                   ),
@@ -1610,7 +1947,7 @@ class _BrandMark extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: _AdminPalette.muted,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -1669,7 +2006,7 @@ class _TopbarLink extends StatelessWidget {
                   color: selected
                       ? _AdminPalette.accentStrong
                       : _AdminPalette.muted,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -1702,7 +2039,7 @@ class _HomeHero extends StatelessWidget {
                 style: TextStyle(
                   fontSize: titleSize,
                   height: 1.02,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                   color: _AdminPalette.ink,
                 ),
               ),
@@ -1713,7 +2050,7 @@ class _HomeHero extends StatelessWidget {
                 style: TextStyle(
                   height: 1.55,
                   color: _AdminPalette.muted,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 22),
@@ -1728,16 +2065,21 @@ class _HomeHero extends StatelessWidget {
                   ),
                   OutlinedButton.icon(
                     onPressed: () => onSelect(2),
+                    icon: const Icon(Icons.query_stats_rounded),
+                    label: const Text('부스 정보 조회'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => onSelect(3),
                     icon: const Icon(Icons.person_add_alt_1_rounded),
                     label: const Text('인원 추가'),
                   ),
                   OutlinedButton.icon(
-                    onPressed: () => onSelect(3),
+                    onPressed: () => onSelect(4),
                     icon: const Icon(Icons.storefront_rounded),
                     label: const Text('카테고리 및 부스 등록'),
                   ),
                   OutlinedButton.icon(
-                    onPressed: () => onSelect(4),
+                    onPressed: () => onSelect(5),
                     icon: const Icon(Icons.tune_rounded),
                     label: const Text('시드 수량 변경'),
                   ),
@@ -1826,20 +2168,27 @@ class _FeaturePanel extends StatelessWidget {
           ),
           (
             index: 2,
+            icon: Icons.query_stats_rounded,
+            kicker: '집계',
+            title: '부스 정보 조회',
+            description: '카테고리와 부스별 황금씨앗 발행량을 확인하고 저장합니다.',
+          ),
+          (
+            index: 3,
             icon: Icons.person_add_alt_1_rounded,
             kicker: '등록',
             title: '인원 추가',
             description: '기본 정보와 중복 여부를 확인한 뒤 바로 참가자를 등록합니다.',
           ),
           (
-            index: 3,
+            index: 4,
             icon: Icons.storefront_rounded,
             kicker: '마스터',
             title: '부스 등록',
             description: '카테고리와 부스를 추가하고 기본 시드값을 설정합니다.',
           ),
           (
-            index: 4,
+            index: 5,
             icon: Icons.tune_rounded,
             kicker: '조정',
             title: '시드 수량 변경',
@@ -1986,7 +2335,7 @@ class _PageHeader extends StatelessWidget {
                 style: TextStyle(
                   fontSize: titleSize,
                   height: 1.05,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                   color: _AdminPalette.ink,
                 ),
               ),
@@ -2058,7 +2407,7 @@ class _PanelHeading extends StatelessWidget {
               title,
               style: const TextStyle(
                 fontSize: 28,
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w500,
                 color: _AdminPalette.ink,
               ),
             ),
@@ -2112,7 +2461,7 @@ class _Eyebrow extends StatelessWidget {
       style: const TextStyle(
         color: _AdminPalette.accentStrong,
         fontSize: 12,
-        fontWeight: FontWeight.w800,
+        fontWeight: FontWeight.w500,
         letterSpacing: 1.2,
       ),
     );
@@ -2142,7 +2491,7 @@ class _StatCard extends StatelessWidget {
             style: const TextStyle(
               color: _AdminPalette.accentStrong,
               fontSize: 12,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
               letterSpacing: 1.1,
             ),
           ),
@@ -2151,7 +2500,7 @@ class _StatCard extends StatelessWidget {
             value,
             style: const TextStyle(
               fontSize: 28,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w500,
               color: _AdminPalette.ink,
             ),
           ),
@@ -2205,7 +2554,7 @@ class _FeatureCard extends StatelessWidget {
                 style: const TextStyle(
                   color: _AdminPalette.accentStrong,
                   fontSize: 12,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                   letterSpacing: 1.1,
                 ),
               ),
@@ -2213,7 +2562,7 @@ class _FeatureCard extends StatelessWidget {
               Text(
                 title,
                 style: const TextStyle(
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                   color: _AdminPalette.ink,
                   fontSize: 18,
                 ),
@@ -2257,7 +2606,7 @@ class _RecentUserCard extends StatelessWidget {
             user.nickname,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w500,
               color: _AdminPalette.ink,
             ),
           ),
@@ -2289,34 +2638,721 @@ class _MetaText extends StatelessWidget {
       style: const TextStyle(
         color: _AdminPalette.muted,
         fontSize: 13,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w500,
       ),
     );
   }
 }
 
-class _ToolbarField extends StatelessWidget {
-  const _ToolbarField({required this.label, required this.child});
+class _QueryActionToolbar extends StatelessWidget {
+  const _QueryActionToolbar({
+    required this.onFilter,
+    required this.onSort,
+    required this.onReset,
+    required this.onExport,
+    required this.exporting,
+    required this.exportLabel,
+    this.searchController,
+    this.searchHint,
+  });
 
-  final String label;
-  final Widget child;
+  final TextEditingController? searchController;
+  final String? searchHint;
+  final VoidCallback onFilter;
+  final VoidCallback onSort;
+  final VoidCallback onReset;
+  final VoidCallback? onExport;
+  final bool exporting;
+  final String exportLabel;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w800,
-            color: _AdminPalette.ink,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final stacked = constraints.maxWidth < 760;
+        final width = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : 640.0;
+        final controls = <Widget>[
+          if (searchController != null)
+            SizedBox(
+              width: stacked ? width : 260,
+              child: TextField(
+                controller: searchController,
+                decoration: _inputDecoration(
+                  searchHint ?? '검색',
+                ).copyWith(prefixIcon: const Icon(Icons.search_rounded)),
+              ),
+            ),
+          Tooltip(
+            message: '필터',
+            child: IconButton.outlined(
+              onPressed: onFilter,
+              icon: const Icon(Icons.filter_list_rounded),
+            ),
+          ),
+          Tooltip(
+            message: '정렬',
+            child: IconButton.outlined(
+              onPressed: onSort,
+              icon: const Icon(Icons.sort_rounded),
+            ),
+          ),
+          OutlinedButton.icon(
+            onPressed: onReset,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('기본값'),
+          ),
+          FilledButton.icon(
+            onPressed: exporting ? null : onExport,
+            icon: const Icon(Icons.file_download_rounded),
+            label: Text(exporting ? '저장 중...' : exportLabel),
+          ),
+        ];
+        return Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          alignment: WrapAlignment.end,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: controls,
+        );
+      },
+    );
+  }
+}
+
+class _UserFilterDialog extends StatefulWidget {
+  const _UserFilterDialog({required this.initialFilters});
+
+  final List<FestivalUserFilterCondition> initialFilters;
+
+  @override
+  State<_UserFilterDialog> createState() => _UserFilterDialogState();
+}
+
+class _UserFilterDialogState extends State<_UserFilterDialog> {
+  late List<FestivalUserFilterCondition> _filters;
+
+  @override
+  void initState() {
+    super.initState();
+    _filters = [...widget.initialFilters];
+  }
+
+  void _addFilter() {
+    setState(() => _filters.add(_nextUserFilter(_filters)));
+  }
+
+  void _removeFilter(int index) {
+    setState(() => _filters.removeAt(index));
+  }
+
+  void _changeFilter(int index, FestivalUserFilterCondition condition) {
+    setState(() => _filters[index] = condition);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('필터'),
+      content: SizedBox(
+        width: 620,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_filters.isEmpty)
+                const _InlineEmptyState(message: '추가된 필터가 없습니다.')
+              else
+                ...List.generate(_filters.length, (index) {
+                  return _UserFilterEditorRow(
+                    condition: _filters[index],
+                    onChanged: (condition) => _changeFilter(index, condition),
+                    onDelete: () => _removeFilter(index),
+                  );
+                }),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: _addFilter,
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('필터 추가'),
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 8),
-        child,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('취소'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_filters),
+          child: const Text('적용'),
+        ),
       ],
+    );
+  }
+}
+
+class _UserFilterEditorRow extends StatelessWidget {
+  const _UserFilterEditorRow({
+    required this.condition,
+    required this.onChanged,
+    required this.onDelete,
+  });
+
+  final FestivalUserFilterCondition condition;
+  final ValueChanged<FestivalUserFilterCondition> onChanged;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ConditionRow(
+      children: [
+        SizedBox(
+          width: 170,
+          child: DropdownButtonFormField<FestivalUserFilterField>(
+            initialValue: condition.field,
+            decoration: _inputDecoration('필드'),
+            items: FestivalUserFilterField.values.map((field) {
+              return DropdownMenuItem(
+                value: field,
+                child: Text(_userFilterFieldLabel(field)),
+              );
+            }).toList(),
+            onChanged: (field) {
+              if (field == null) return;
+              onChanged(_defaultUserFilter(field));
+            },
+          ),
+        ),
+        SizedBox(width: 220, child: _valueInput()),
+        IconButton(
+          tooltip: '필터 삭제',
+          onPressed: onDelete,
+          icon: const Icon(Icons.close_rounded),
+        ),
+      ],
+    );
+  }
+
+  Widget _valueInput() {
+    switch (condition.field) {
+      case FestivalUserFilterField.gender:
+        return _intOptionDropdown(
+          value: condition.intValue,
+          hint: '성별',
+          options: festivalGenderOptions,
+          onChanged: (value) => onChanged(
+            FestivalUserFilterCondition(
+              field: condition.field,
+              intValue: value,
+            ),
+          ),
+        );
+      case FestivalUserFilterField.age:
+        return _intOptionDropdown(
+          value: condition.intValue,
+          hint: '연령',
+          options: festivalAgeOptions,
+          onChanged: (value) => onChanged(
+            FestivalUserFilterCondition(
+              field: condition.field,
+              intValue: value,
+            ),
+          ),
+        );
+      case FestivalUserFilterField.residence:
+        return _intOptionDropdown(
+          value: condition.intValue,
+          hint: '거주정보',
+          options: festivalResidenceOptions,
+          onChanged: (value) => onChanged(
+            FestivalUserFilterCondition(
+              field: condition.field,
+              intValue: value,
+            ),
+          ),
+        );
+      case FestivalUserFilterField.submitted:
+        return DropdownButtonFormField<FestivalSubmittedFilter>(
+          initialValue: condition.submitted,
+          decoration: _inputDecoration('제출 상태'),
+          items: FestivalSubmittedFilter.values.map((filter) {
+            return DropdownMenuItem(
+              value: filter,
+              child: Text(_submittedFilterLabel(filter)),
+            );
+          }).toList(),
+          onChanged: (value) => onChanged(
+            FestivalUserFilterCondition(
+              field: condition.field,
+              submitted: value ?? FestivalSubmittedFilter.all,
+            ),
+          ),
+        );
+    }
+  }
+}
+
+class _BoothFilterDialog extends StatefulWidget {
+  const _BoothFilterDialog({
+    required this.initialFilters,
+    required this.categories,
+  });
+
+  final List<FestivalBoothFilterCondition> initialFilters;
+  final List<({String uid, String name})> categories;
+
+  @override
+  State<_BoothFilterDialog> createState() => _BoothFilterDialogState();
+}
+
+class _BoothFilterDialogState extends State<_BoothFilterDialog> {
+  late List<FestivalBoothFilterCondition> _filters;
+
+  @override
+  void initState() {
+    super.initState();
+    _filters = [...widget.initialFilters];
+  }
+
+  void _addFilter() {
+    setState(() => _filters.add(_nextBoothFilter(_filters, widget.categories)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('필터'),
+      content: SizedBox(
+        width: 620,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_filters.isEmpty)
+                const _InlineEmptyState(message: '추가된 필터가 없습니다.')
+              else
+                ...List.generate(_filters.length, (index) {
+                  return _BoothFilterEditorRow(
+                    condition: _filters[index],
+                    categories: widget.categories,
+                    onChanged: (condition) {
+                      setState(() => _filters[index] = condition);
+                    },
+                    onDelete: () {
+                      setState(() => _filters.removeAt(index));
+                    },
+                  );
+                }),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: _addFilter,
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('필터 추가'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('취소'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_filters),
+          child: const Text('적용'),
+        ),
+      ],
+    );
+  }
+}
+
+class _BoothFilterEditorRow extends StatelessWidget {
+  const _BoothFilterEditorRow({
+    required this.condition,
+    required this.categories,
+    required this.onChanged,
+    required this.onDelete,
+  });
+
+  final FestivalBoothFilterCondition condition;
+  final List<({String uid, String name})> categories;
+  final ValueChanged<FestivalBoothFilterCondition> onChanged;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ConditionRow(
+      children: [
+        SizedBox(
+          width: 170,
+          child: DropdownButtonFormField<FestivalBoothFilterField>(
+            initialValue: condition.field,
+            decoration: _inputDecoration('필드'),
+            items: FestivalBoothFilterField.values.map((field) {
+              return DropdownMenuItem(
+                value: field,
+                child: Text(_boothFilterFieldLabel(field)),
+              );
+            }).toList(),
+            onChanged: (field) {
+              if (field == null) return;
+              onChanged(_defaultBoothFilter(field, categories));
+            },
+          ),
+        ),
+        SizedBox(width: 220, child: _valueInput()),
+        IconButton(
+          tooltip: '필터 삭제',
+          onPressed: onDelete,
+          icon: const Icon(Icons.close_rounded),
+        ),
+      ],
+    );
+  }
+
+  Widget _valueInput() {
+    switch (condition.field) {
+      case FestivalBoothFilterField.category:
+        return DropdownButtonFormField<String>(
+          initialValue:
+              categories.any(
+                (category) => category.uid == condition.categoryUid,
+              )
+              ? condition.categoryUid
+              : '',
+          decoration: _inputDecoration('카테고리'),
+          items: [
+            const DropdownMenuItem(value: '', child: Text('전체')),
+            ...categories.map(
+              (category) => DropdownMenuItem(
+                value: category.uid,
+                child: Text(category.name),
+              ),
+            ),
+          ],
+          onChanged: (value) => onChanged(
+            FestivalBoothFilterCondition(
+              field: condition.field,
+              categoryUid: value ?? '',
+            ),
+          ),
+        );
+      case FestivalBoothFilterField.submitted:
+        return DropdownButtonFormField<FestivalSubmittedFilter>(
+          initialValue: condition.submitted,
+          decoration: _inputDecoration('제출 상태'),
+          items: FestivalSubmittedFilter.values.map((filter) {
+            return DropdownMenuItem(
+              value: filter,
+              child: Text(_submittedFilterLabel(filter)),
+            );
+          }).toList(),
+          onChanged: (value) => onChanged(
+            FestivalBoothFilterCondition(
+              field: condition.field,
+              submitted: value ?? FestivalSubmittedFilter.all,
+            ),
+          ),
+        );
+    }
+  }
+}
+
+class _UserSortDialog extends StatefulWidget {
+  const _UserSortDialog({required this.initialSorts});
+
+  final List<FestivalUserSortCondition> initialSorts;
+
+  @override
+  State<_UserSortDialog> createState() => _UserSortDialogState();
+}
+
+class _UserSortDialogState extends State<_UserSortDialog> {
+  late List<FestivalUserSortCondition> _sorts;
+
+  @override
+  void initState() {
+    super.initState();
+    _sorts = [...widget.initialSorts];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('정렬'),
+      content: SizedBox(
+        width: 620,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_sorts.isEmpty)
+                const _InlineEmptyState(message: '추가된 정렬이 없습니다.')
+              else
+                ...List.generate(_sorts.length, (index) {
+                  return _UserSortEditorRow(
+                    condition: _sorts[index],
+                    onChanged: (condition) {
+                      setState(() => _sorts[index] = condition);
+                    },
+                    onDelete: () {
+                      setState(() => _sorts.removeAt(index));
+                    },
+                  );
+                }),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() => _sorts.add(_nextUserSort(_sorts)));
+                  },
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('정렬 추가'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('취소'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_sorts),
+          child: const Text('적용'),
+        ),
+      ],
+    );
+  }
+}
+
+class _UserSortEditorRow extends StatelessWidget {
+  const _UserSortEditorRow({
+    required this.condition,
+    required this.onChanged,
+    required this.onDelete,
+  });
+
+  final FestivalUserSortCondition condition;
+  final ValueChanged<FestivalUserSortCondition> onChanged;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ConditionRow(
+      children: [
+        SizedBox(
+          width: 220,
+          child: DropdownButtonFormField<FestivalUserSortMode>(
+            initialValue: condition.mode,
+            decoration: _inputDecoration('정렬 기준'),
+            items: FestivalUserSortMode.values.map((mode) {
+              return DropdownMenuItem(
+                value: mode,
+                child: Text(_userSortLabel(mode)),
+              );
+            }).toList(),
+            onChanged: (mode) {
+              onChanged(
+                FestivalUserSortCondition(
+                  mode: mode ?? FestivalUserSortMode.current,
+                  direction: condition.direction,
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(
+          width: 160,
+          child: _directionDropdown(
+            value: condition.direction,
+            onChanged: (direction) {
+              onChanged(
+                FestivalUserSortCondition(
+                  mode: condition.mode,
+                  direction: direction,
+                ),
+              );
+            },
+          ),
+        ),
+        IconButton(
+          tooltip: '정렬 삭제',
+          onPressed: onDelete,
+          icon: const Icon(Icons.close_rounded),
+        ),
+      ],
+    );
+  }
+}
+
+class _BoothSortDialog extends StatefulWidget {
+  const _BoothSortDialog({required this.initialSorts});
+
+  final List<FestivalBoothSortCondition> initialSorts;
+
+  @override
+  State<_BoothSortDialog> createState() => _BoothSortDialogState();
+}
+
+class _BoothSortDialogState extends State<_BoothSortDialog> {
+  late List<FestivalBoothSortCondition> _sorts;
+
+  @override
+  void initState() {
+    super.initState();
+    _sorts = [...widget.initialSorts];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('정렬'),
+      content: SizedBox(
+        width: 620,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_sorts.isEmpty)
+                const _InlineEmptyState(message: '추가된 정렬이 없습니다.')
+              else
+                ...List.generate(_sorts.length, (index) {
+                  return _BoothSortEditorRow(
+                    condition: _sorts[index],
+                    onChanged: (condition) {
+                      setState(() => _sorts[index] = condition);
+                    },
+                    onDelete: () {
+                      setState(() => _sorts.removeAt(index));
+                    },
+                  );
+                }),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() => _sorts.add(_nextBoothSort(_sorts)));
+                  },
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('정렬 추가'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('취소'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_sorts),
+          child: const Text('적용'),
+        ),
+      ],
+    );
+  }
+}
+
+class _BoothSortEditorRow extends StatelessWidget {
+  const _BoothSortEditorRow({
+    required this.condition,
+    required this.onChanged,
+    required this.onDelete,
+  });
+
+  final FestivalBoothSortCondition condition;
+  final ValueChanged<FestivalBoothSortCondition> onChanged;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ConditionRow(
+      children: [
+        SizedBox(
+          width: 220,
+          child: DropdownButtonFormField<FestivalBoothSortMode>(
+            initialValue: condition.mode,
+            decoration: _inputDecoration('정렬 기준'),
+            items: FestivalBoothSortMode.values.map((mode) {
+              return DropdownMenuItem(
+                value: mode,
+                child: Text(_boothSortLabel(mode)),
+              );
+            }).toList(),
+            onChanged: (mode) {
+              onChanged(
+                FestivalBoothSortCondition(
+                  mode: mode ?? FestivalBoothSortMode.categoryName,
+                  direction: condition.direction,
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(
+          width: 160,
+          child: _directionDropdown(
+            value: condition.direction,
+            onChanged: (direction) {
+              onChanged(
+                FestivalBoothSortCondition(
+                  mode: condition.mode,
+                  direction: direction,
+                ),
+              );
+            },
+          ),
+        ),
+        IconButton(
+          tooltip: '정렬 삭제',
+          onPressed: onDelete,
+          icon: const Icon(Icons.close_rounded),
+        ),
+      ],
+    );
+  }
+}
+
+class _ConditionRow extends StatelessWidget {
+  const _ConditionRow({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.76),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0x1A704E30)),
+      ),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: children,
+      ),
     );
   }
 }
@@ -2386,7 +3422,7 @@ class _UsersTable extends StatelessWidget {
                           user.uid,
                           style: const TextStyle(
                             color: _AdminPalette.ink,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
@@ -2437,6 +3473,60 @@ class _UsersTable extends StatelessWidget {
   }
 }
 
+class _BoothsTable extends StatelessWidget {
+  const _BoothsTable({required this.rows});
+
+  final List<FestivalBoothSummaryRow> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tableWidth = math.max(constraints.maxWidth, 960.0);
+
+        return Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.78),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0x1A704E30)),
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: tableWidth),
+              child: DataTable(
+                dataRowMinHeight: 64,
+                dataRowMaxHeight: 64,
+                headingRowHeight: 54,
+                columnSpacing: 28,
+                horizontalMargin: 18,
+                headingRowColor: WidgetStatePropertyAll(
+                  const Color(0xFFF6EEE2).withValues(alpha: 0.96),
+                ),
+                columns: const [
+                  DataColumn(label: Text('카테고리 이름')),
+                  DataColumn(label: Text('부스 이름')),
+                  DataColumn(label: Text('부스 별 시드 갯수'), numeric: true),
+                ],
+                rows: rows.map((row) {
+                  return DataRow(
+                    cells: [
+                      DataCell(Text(row.categoryName)),
+                      DataCell(Text(row.boothName)),
+                      DataCell(Text('${row.issuedSeedCount}')),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _LiveBanner extends StatelessWidget {
   const _LiveBanner({required this.text});
 
@@ -2468,7 +3558,7 @@ class _LiveBanner extends StatelessWidget {
             text,
             style: const TextStyle(
               color: _AdminPalette.muted,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -2527,7 +3617,7 @@ class _FormFieldBlock extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w500,
             color: _AdminPalette.ink,
           ),
         ),
@@ -2623,7 +3713,7 @@ class _SectionBlockTitle extends StatelessWidget {
           title,
           style: const TextStyle(
             fontSize: 22,
-            fontWeight: FontWeight.w900,
+            fontWeight: FontWeight.w500,
             color: _AdminPalette.ink,
           ),
         ),
@@ -2686,7 +3776,7 @@ class _ChoiceCard extends StatelessWidget {
                 title,
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                   color: selected
                       ? _AdminPalette.accentStrong
                       : _AdminPalette.ink,
@@ -2836,7 +3926,7 @@ class _CatalogCategoryCard extends StatelessWidget {
                       title,
                       style: const TextStyle(
                         fontSize: 18,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w500,
                         color: _AdminPalette.ink,
                       ),
                     ),
@@ -2852,7 +3942,7 @@ class _CatalogCategoryCard extends StatelessWidget {
                         title,
                         style: const TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w500,
                           color: _AdminPalette.ink,
                         ),
                       ),
@@ -2878,6 +3968,12 @@ class _CatalogSeedRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Future<void> copyUid() async {
+      await Clipboard.setData(ClipboardData(text: seed.uid));
+      if (!context.mounted) return;
+      _showSnack(context, '부스 UID를 복사했습니다.');
+    }
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
@@ -2896,17 +3992,30 @@ class _CatalogSeedRow extends StatelessWidget {
               Text(
                 seed.name,
                 style: const TextStyle(
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                   color: _AdminPalette.ink,
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                'UID: ${seed.uid}',
-                style: const TextStyle(
-                  color: _AdminPalette.muted,
-                  fontSize: 12,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: SelectableText(
+                      'UID: ${seed.uid}',
+                      style: const TextStyle(
+                        color: _AdminPalette.muted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'UID 복사',
+                    onPressed: copyUid,
+                    icon: const Icon(Icons.content_copy_rounded, size: 18),
+                    visualDensity: VisualDensity.compact,
+                    splashRadius: 18,
+                  ),
+                ],
               ),
             ],
           );
@@ -2996,11 +4105,11 @@ class _SummaryBadge extends StatelessWidget {
           children: [
             TextSpan(
               text: '$label ',
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
             ),
             TextSpan(
               text: value,
-              style: const TextStyle(fontWeight: FontWeight.w900),
+              style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -3032,7 +4141,7 @@ class _ProfileChip extends StatelessWidget {
             style: const TextStyle(
               color: _AdminPalette.muted,
               fontSize: 12,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 6),
@@ -3040,7 +4149,7 @@ class _ProfileChip extends StatelessWidget {
             value,
             style: const TextStyle(
               color: _AdminPalette.ink,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -3137,7 +4246,7 @@ class _SeedCategoryEditorBlock extends StatelessWidget {
                       title,
                       style: const TextStyle(
                         fontSize: 18,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w500,
                         color: _AdminPalette.ink,
                       ),
                     ),
@@ -3158,7 +4267,7 @@ class _SeedCategoryEditorBlock extends StatelessWidget {
                         title,
                         style: const TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w500,
                           color: _AdminPalette.ink,
                         ),
                       ),
@@ -3218,7 +4327,7 @@ class _SeedEditorRow extends StatelessWidget {
               Text(
                 seed.name,
                 style: const TextStyle(
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                   color: _AdminPalette.ink,
                 ),
               ),
@@ -3297,7 +4406,7 @@ class _SeedStepper extends StatelessWidget {
             '$count',
             style: const TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w500,
               color: _AdminPalette.ink,
             ),
           ),
@@ -3360,7 +4469,7 @@ class _StatusBadge extends StatelessWidget {
         label,
         style: TextStyle(
           color: highlighted ? _AdminPalette.accentStrong : _AdminPalette.muted,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w500,
           fontSize: 12,
         ),
       ),
@@ -3476,6 +4585,244 @@ class _AdminNavItem {
 
 enum _NoticeTone { neutral, success, error }
 
+String _userSortLabel(FestivalUserSortMode mode) {
+  return switch (mode) {
+    FestivalUserSortMode.current => '현재 정렬',
+    FestivalUserSortMode.nickname => '이름 순',
+    FestivalUserSortMode.gender => '성별 순',
+    FestivalUserSortMode.age => '연령 순',
+    FestivalUserSortMode.participantCount => '참여인원 순',
+    FestivalUserSortMode.residence => '거주정보 순',
+    FestivalUserSortMode.submitted => '제출여부 순',
+  };
+}
+
+String _boothSortLabel(FestivalBoothSortMode mode) {
+  return switch (mode) {
+    FestivalBoothSortMode.categoryName => '카테고리 이름',
+    FestivalBoothSortMode.boothName => '부스 이름',
+  };
+}
+
+String _directionLabel(FestivalSortDirection direction) {
+  return switch (direction) {
+    FestivalSortDirection.ascending => '오름차순',
+    FestivalSortDirection.descending => '내림차순',
+  };
+}
+
+String _submittedFilterLabel(FestivalSubmittedFilter filter) {
+  return switch (filter) {
+    FestivalSubmittedFilter.all => '미제출 포함',
+    FestivalSubmittedFilter.submittedOnly => '제출만',
+  };
+}
+
+String _userFilterFieldLabel(FestivalUserFilterField field) {
+  return switch (field) {
+    FestivalUserFilterField.gender => '성별',
+    FestivalUserFilterField.age => '연령',
+    FestivalUserFilterField.residence => '거주정보',
+    FestivalUserFilterField.submitted => '제출 상태',
+  };
+}
+
+String _boothFilterFieldLabel(FestivalBoothFilterField field) {
+  return switch (field) {
+    FestivalBoothFilterField.category => '카테고리',
+    FestivalBoothFilterField.submitted => '제출 상태',
+  };
+}
+
+String _userFilterChipLabel(FestivalUserFilterCondition condition) {
+  return switch (condition.field) {
+    FestivalUserFilterField.gender =>
+      '성별: ${_labelFromCode(festivalGenderOptions, condition.intValue)}',
+    FestivalUserFilterField.age =>
+      '연령: ${_labelFromCode(festivalAgeOptions, condition.intValue)}',
+    FestivalUserFilterField.residence =>
+      '거주정보: ${_labelFromCode(festivalResidenceOptions, condition.intValue)}',
+    FestivalUserFilterField.submitted =>
+      '제출 상태: ${_submittedFilterLabel(condition.submitted)}',
+  };
+}
+
+String _boothFilterChipLabel(
+  FestivalBoothFilterCondition condition,
+  List<({String uid, String name})> categories,
+) {
+  return switch (condition.field) {
+    FestivalBoothFilterField.category =>
+      '카테고리: ${_categoryNameByUid(categories, condition.categoryUid)}',
+    FestivalBoothFilterField.submitted =>
+      '제출 상태: ${_submittedFilterLabel(condition.submitted)}',
+  };
+}
+
+FestivalUserFilterCondition _nextUserFilter(
+  List<FestivalUserFilterCondition> filters,
+) {
+  for (final field in FestivalUserFilterField.values) {
+    if (!filters.any((filter) => filter.field == field)) {
+      return _defaultUserFilter(field);
+    }
+  }
+  return _defaultUserFilter(FestivalUserFilterField.submitted);
+}
+
+FestivalUserFilterCondition _defaultUserFilter(FestivalUserFilterField field) {
+  return switch (field) {
+    FestivalUserFilterField.gender => const FestivalUserFilterCondition(
+      field: FestivalUserFilterField.gender,
+      intValue: 1,
+    ),
+    FestivalUserFilterField.age => const FestivalUserFilterCondition(
+      field: FestivalUserFilterField.age,
+      intValue: 1,
+    ),
+    FestivalUserFilterField.residence => const FestivalUserFilterCondition(
+      field: FestivalUserFilterField.residence,
+      intValue: 1,
+    ),
+    FestivalUserFilterField.submitted => const FestivalUserFilterCondition(
+      field: FestivalUserFilterField.submitted,
+      submitted: FestivalSubmittedFilter.submittedOnly,
+    ),
+  };
+}
+
+FestivalBoothFilterCondition _nextBoothFilter(
+  List<FestivalBoothFilterCondition> filters,
+  List<({String uid, String name})> categories,
+) {
+  for (final field in FestivalBoothFilterField.values) {
+    if (!filters.any((filter) => filter.field == field)) {
+      return _defaultBoothFilter(field, categories);
+    }
+  }
+  return _defaultBoothFilter(FestivalBoothFilterField.submitted, categories);
+}
+
+FestivalBoothFilterCondition _defaultBoothFilter(
+  FestivalBoothFilterField field,
+  List<({String uid, String name})> categories,
+) {
+  return switch (field) {
+    FestivalBoothFilterField.category => FestivalBoothFilterCondition(
+      field: FestivalBoothFilterField.category,
+      categoryUid: categories.isEmpty ? '' : categories.first.uid,
+    ),
+    FestivalBoothFilterField.submitted => const FestivalBoothFilterCondition(
+      field: FestivalBoothFilterField.submitted,
+      submitted: FestivalSubmittedFilter.submittedOnly,
+    ),
+  };
+}
+
+FestivalUserSortCondition _nextUserSort(List<FestivalUserSortCondition> sorts) {
+  const preferred = [
+    FestivalUserSortMode.nickname,
+    FestivalUserSortMode.gender,
+    FestivalUserSortMode.age,
+    FestivalUserSortMode.participantCount,
+    FestivalUserSortMode.residence,
+    FestivalUserSortMode.submitted,
+    FestivalUserSortMode.current,
+  ];
+  for (final mode in preferred) {
+    if (!sorts.any((sort) => sort.mode == mode)) {
+      return FestivalUserSortCondition(
+        mode: mode,
+        direction: mode == FestivalUserSortMode.current
+            ? FestivalSortDirection.descending
+            : FestivalSortDirection.ascending,
+      );
+    }
+  }
+  return const FestivalUserSortCondition(
+    mode: FestivalUserSortMode.nickname,
+    direction: FestivalSortDirection.ascending,
+  );
+}
+
+FestivalBoothSortCondition _nextBoothSort(
+  List<FestivalBoothSortCondition> sorts,
+) {
+  const preferred = [
+    FestivalBoothSortMode.categoryName,
+    FestivalBoothSortMode.boothName,
+  ];
+  for (final mode in preferred) {
+    if (!sorts.any((sort) => sort.mode == mode)) {
+      return FestivalBoothSortCondition(
+        mode: mode,
+        direction: FestivalSortDirection.ascending,
+      );
+    }
+  }
+  return const FestivalBoothSortCondition(
+    mode: FestivalBoothSortMode.categoryName,
+    direction: FestivalSortDirection.ascending,
+  );
+}
+
+Widget _intOptionDropdown({
+  required int value,
+  required String hint,
+  required List<FestivalSelectOption> options,
+  required ValueChanged<int> onChanged,
+}) {
+  return DropdownButtonFormField<int>(
+    initialValue: options.any((option) => option.value == value) ? value : 0,
+    decoration: _inputDecoration(hint),
+    items: [
+      const DropdownMenuItem(value: 0, child: Text('전체')),
+      ...options.map(
+        (option) =>
+            DropdownMenuItem(value: option.value, child: Text(option.label)),
+      ),
+    ],
+    onChanged: (nextValue) => onChanged(nextValue ?? 0),
+  );
+}
+
+Widget _directionDropdown({
+  required FestivalSortDirection value,
+  required ValueChanged<FestivalSortDirection> onChanged,
+}) {
+  return DropdownButtonFormField<FestivalSortDirection>(
+    initialValue: value,
+    decoration: _inputDecoration('방향'),
+    items: FestivalSortDirection.values.map((direction) {
+      return DropdownMenuItem(
+        value: direction,
+        child: Text(_directionLabel(direction)),
+      );
+    }).toList(),
+    onChanged: (nextValue) {
+      onChanged(nextValue ?? FestivalSortDirection.ascending);
+    },
+  );
+}
+
+String _labelFromCode(List<FestivalSelectOption> options, int value) {
+  for (final option in options) {
+    if (option.value == value) return option.label;
+  }
+  return '전체';
+}
+
+String _categoryNameByUid(
+  List<({String uid, String name})> categories,
+  String uid,
+) {
+  if (uid.isEmpty) return '전체';
+  for (final category in categories) {
+    if (category.uid == uid) return category.name;
+  }
+  return '전체';
+}
+
 InputDecoration _inputDecoration(String hint) {
   return InputDecoration(
     hintText: hint,
@@ -3498,31 +4845,15 @@ InputDecoration _inputDecoration(String hint) {
 }
 
 String _displayGender(FestivalUser user) {
-  if (user.genderLabel.trim().isNotEmpty && user.genderLabel != '-') {
-    return user.genderLabel;
-  }
-  return _labelFromCode(_genderChoices, user.gender);
+  return reportGenderLabel(user);
 }
 
 String _displayAge(FestivalUser user) {
-  if (user.ageGroupLabel.trim().isNotEmpty && user.ageGroupLabel != '-') {
-    return user.ageGroupLabel;
-  }
-  return _labelFromCode(_ageChoices, user.ageGroup);
+  return reportAgeLabel(user);
 }
 
 String _displayResidence(FestivalUser user) {
-  if (user.residenceLabel.trim().isNotEmpty && user.residenceLabel != '-') {
-    return user.residenceLabel;
-  }
-  return _labelFromCode(_residenceChoices, user.residence);
-}
-
-String _labelFromCode(List<FestivalSelectOption> options, int code) {
-  for (final option in options) {
-    if (option.value == code) return option.label;
-  }
-  return '-';
+  return reportResidenceLabel(user);
 }
 
 String _formatDate(DateTime? value) {
@@ -3559,6 +4890,31 @@ Future<bool?> _confirmDialog(
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(confirmLabel),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+Future<bool?> _confirmExportDialog(BuildContext context) {
+  return showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('현재 조건으로 Export할까요?'),
+        content: const Text(
+          '현재 검색, 필터, 정렬 상태가 그대로 적용된 Excel 파일을 저장합니다.\n\n'
+          '전체 정보가 필요하면 취소한 뒤 기본값 버튼으로 초기화하고 다시 export해주세요.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('확인'),
           ),
         ],
       );

@@ -8,12 +8,10 @@ import '../../controllers/survey_controller.dart';
 import '../../widgets/survey_progress_bar.dart';
 import '../../../data/models/option_model.dart';
 
-
 class StepContentOrder extends StatelessWidget {
   final SurveyStepModel step;
   final uiController = Get.find<SurveyUiController>();
   final surveyController = Get.find<SurveyController>();
-
 
   StepContentOrder({super.key, required this.step});
 
@@ -72,7 +70,6 @@ class StepContentOrder extends StatelessWidget {
     );
   }
 
-
   Widget _buildLeftPanel() {
     final uiController = Get.find<SurveyUiController>();
     final surveyController = Get.find<SurveyController>();
@@ -106,15 +103,20 @@ class StepContentOrder extends StatelessWidget {
 
                   // ✅ 총 페이지 수 계산
                   final int itemsPerPage = 9;
-                  final int totalPages =
-                      (episodeList.length / itemsPerPage).ceil();
+                  final int totalPages = (episodeList.length / itemsPerPage)
+                      .ceil();
 
                   // ✅ 현재 페이지 인덱스 및 보여줄 아이템 구하기
                   final int currentPage = uiController.currentPage.value;
                   final int startIndex = currentPage * itemsPerPage;
-                  final int endIndex =
-                      (startIndex + itemsPerPage).clamp(0, episodeList.length);
-                  final visibleItems = episodeList.sublist(startIndex, endIndex);
+                  final int endIndex = (startIndex + itemsPerPage).clamp(
+                    0,
+                    episodeList.length,
+                  );
+                  final visibleItems = episodeList.sublist(
+                    startIndex,
+                    endIndex,
+                  );
 
                   // ✅ GridView 빌드
                   return Column(
@@ -125,19 +127,24 @@ class StepContentOrder extends StatelessWidget {
                           itemCount: visibleItems.length,
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            mainAxisSpacing: 10,
-                            crossAxisSpacing: 10,
-                            childAspectRatio: 1.5,
-                          ),
+                                crossAxisCount: 3,
+                                mainAxisSpacing: 10,
+                                crossAxisSpacing: 10,
+                                childAspectRatio: 1.5,
+                              ),
                           itemBuilder: (context, index) {
                             final item = visibleItems[index];
                             final episodeNum = item['num']!;
-                            final cleanTitle = (item['title'] ?? '').replaceAll('\n', ' ');
-                            final combined = '$episodeNum [$cleanTitle]'; // ✅ "1편 [제목]" 포맷
+                            final cleanTitle = (item['title'] ?? '').replaceAll(
+                              '\n',
+                              ' ',
+                            );
+                            final combined =
+                                '$episodeNum [$cleanTitle]'; // ✅ "1편 [제목]" 포맷
 
                             return Obx(() {
-                              final isSelected = uiController.selectedTitles.contains(combined); // ✅ 여기 변경!
+                              final isSelected = uiController.selectedTitles
+                                  .contains(combined); // ✅ 여기 변경!
 
                               return _buildEpisodeCard(
                                 index: index,
@@ -146,16 +153,22 @@ class StepContentOrder extends StatelessWidget {
                                 episodeTitle: cleanTitle,
                                 isSelected: isSelected,
                                 onTap: () {
-                                  if (uiController.selectedTitles.contains(combined)) {
-                                    uiController.selectedTitles.remove(combined);
-                                  } else if (uiController.selectedTitles.length < 6) {
+                                  if (uiController.selectedTitles.contains(
+                                    combined,
+                                  )) {
+                                    uiController.selectedTitles.remove(
+                                      combined,
+                                    );
+                                  } else if (uiController
+                                          .selectedTitles
+                                          .length <
+                                      6) {
                                     uiController.selectedTitles.add(combined);
                                   }
                                 },
                               );
                             });
                           },
-
                         ),
                       ),
 
@@ -182,23 +195,29 @@ class StepContentOrder extends StatelessWidget {
                             // ◀ 왼쪽 화살표
                             IconButton(
                               padding: EdgeInsets.zero,
-                              icon: Icon(Icons.chevron_left,
-                                  color: HColor.blue1, size: 10.sp),
+                              icon: Icon(
+                                Icons.chevron_left,
+                                color: HColor.blue1,
+                                size: 10.sp,
+                              ),
                               onPressed: uiController.prevPage,
                             ),
 
                             // ✅ 페이지 번호 버튼들
                             Obx(() {
-                              final currentPage = uiController.currentPage.value;
+                              final currentPage =
+                                  uiController.currentPage.value;
                               return Row(
                                 children: List.generate(totalPages, (index) {
                                   final isActive = index == currentPage;
                                   return Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 1.w),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 1.w,
+                                    ),
                                     child: GestureDetector(
                                       onTap: () =>
-                                          uiController.currentPage.value = index,
+                                          uiController.currentPage.value =
+                                              index,
                                       child: Container(
                                         width: 10.w,
                                         height: 34.h,
@@ -207,11 +226,14 @@ class StepContentOrder extends StatelessWidget {
                                           color: isActive
                                               ? HColor.blue1
                                               : Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(4.r),
+                                          borderRadius: BorderRadius.circular(
+                                            4.r,
+                                          ),
                                           border: isActive
                                               ? Border.all(
-                                                  color: HColor.blue1, width: 1)
+                                                  color: HColor.blue1,
+                                                  width: 1,
+                                                )
                                               : null,
                                         ),
                                         child: Text(
@@ -220,7 +242,7 @@ class StepContentOrder extends StatelessWidget {
                                             color: isActive
                                                 ? Colors.white
                                                 : HColor.black,
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w500,
                                             fontSize: 5.sp,
                                           ),
                                         ),
@@ -234,8 +256,11 @@ class StepContentOrder extends StatelessWidget {
                             // ▶ 오른쪽 화살표
                             IconButton(
                               padding: EdgeInsets.zero,
-                              icon: Icon(Icons.chevron_right,
-                                  color: HColor.blue1, size: 10.sp),
+                              icon: Icon(
+                                Icons.chevron_right,
+                                color: HColor.blue1,
+                                size: 10.sp,
+                              ),
                               onPressed: () =>
                                   uiController.nextPage(totalPages),
                             ),
@@ -259,7 +284,7 @@ class StepContentOrder extends StatelessWidget {
       final selectedId = uiController.selectedOption.value;
       final selectedText =
           step.options?.firstWhereOrNull((opt) => opt.id == selectedId)?.text ??
-              '';
+          '';
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -271,7 +296,7 @@ class StepContentOrder extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 6.sp,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
                 color: HColor.black,
               ),
             ),
@@ -291,7 +316,7 @@ class StepContentOrder extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 8.sp,
                     color: HColor.blue1,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 TextSpan(
@@ -299,7 +324,7 @@ class StepContentOrder extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 8.sp,
                     color: HColor.black,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 TextSpan(
@@ -307,7 +332,7 @@ class StepContentOrder extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 6.sp,
                     color: HColor.blue1,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -353,21 +378,20 @@ class StepContentOrder extends StatelessWidget {
                                 child: Text(
                                   '${selectedList[i]}',
                                   maxLines: 1, // ✅ 한 줄만 표시
-                                  overflow: TextOverflow.ellipsis, // ✅ 넘치면 ... 으로 표시
+                                  overflow:
+                                      TextOverflow.ellipsis, // ✅ 넘치면 ... 으로 표시
                                   style: TextStyle(
                                     fontSize: 3.sp,
                                     color: HColor.black,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-
                               );
                             },
                           ),
                   );
                 }),
               ),
-
 
               SizedBox(width: 10.w),
 
@@ -396,7 +420,9 @@ class StepContentOrder extends StatelessWidget {
                                 side: BorderSide.none, // ✅ 테두리 제거
                                 minimumSize: Size(32.w, 50.h),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.r), // ✅ 모서리 부드럽게
+                                  borderRadius: BorderRadius.circular(
+                                    8.r,
+                                  ), // ✅ 모서리 부드럽게
                                 ),
                               ),
                               child: Text(
@@ -404,7 +430,7 @@ class StepContentOrder extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 5.sp,
                                   color: Colors.white, // ✅ 흰색 텍스트
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
@@ -431,21 +457,22 @@ class StepContentOrder extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 5.sp,
                                   color: Colors.white,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
                           ],
                         ),
-
-
                       ],
                     ),
                     SizedBox(height: 8.h),
                     // ✅ 수량 박스
                     Container(
                       width: double.infinity,
-                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 10.h,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white, // ✅ 배경 흰색
                         borderRadius: BorderRadius.circular(10.r),
@@ -465,17 +492,19 @@ class StepContentOrder extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 5.sp,
                               color: HColor.gray3,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                          Obx(() => Text(
-                                '${uiController.selectedTitles.length}개', // ✅ 선택된 개수
-                                style: TextStyle(
-                                  fontSize: 5.sp,
-                                  color: HColor.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              )),
+                          Obx(
+                            () => Text(
+                              '${uiController.selectedTitles.length}개', // ✅ 선택된 개수
+                              style: TextStyle(
+                                fontSize: 5.sp,
+                                color: HColor.black,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -501,18 +530,15 @@ class StepContentOrder extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 6.sp,
                           color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-
-
                   ],
                 ),
               ),
             ],
           ),
-
         ],
       );
     });
@@ -523,10 +549,7 @@ class StepContentOrder extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.r),
-        image: DecorationImage(
-          image: AssetImage(imagePath),
-          fit: BoxFit.cover,
-        ),
+        image: DecorationImage(image: AssetImage(imagePath), fit: BoxFit.cover),
       ),
       child: option == null
           ? const SizedBox.shrink()
@@ -540,7 +563,7 @@ class StepContentOrder extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 5.sp,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -590,7 +613,7 @@ class StepContentOrder extends StatelessWidget {
                   style: TextStyle(
                     color: isSelected ? Colors.pink[100] : Colors.white,
                     fontSize: 3.sp,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 // SizedBox(height: 3.h),
@@ -600,17 +623,16 @@ class StepContentOrder extends StatelessWidget {
                     episodeTitle,
                     textAlign: TextAlign.center,
                     softWrap: true, // ✅ 자동 줄바꿈 활성화
-                    maxLines: 3,    // ✅ 개행 포함 3줄까지 표시 (필요 시 늘리세요)
+                    maxLines: 3, // ✅ 개행 포함 3줄까지 표시 (필요 시 늘리세요)
                     overflow: TextOverflow.visible, // ✅ 줄바꿈 시 잘림 방지
                     style: TextStyle(
                       color: isSelected ? Colors.pink[100] : Colors.white,
                       fontSize: 4.sp,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                       height: 1.2, // ✅ 줄 간격 조정 (조금 더 조밀하게)
                     ),
                   ),
                 ),
-
               ],
             ),
           ),
@@ -618,11 +640,6 @@ class StepContentOrder extends StatelessWidget {
       ),
     );
   }
-
-
-
-
-
 
   // ✅ 빈 셀
   Widget _buildEmptyCell() {
@@ -635,17 +652,32 @@ class StepContentOrder extends StatelessWidget {
   }
 }
 
-
 final List<Map<String, String>> seriesA = [
   {'num': '1편', 'title': '선박이 위치를\n찾는 방법', 'img': 'assets/images/A_1.png'},
-  {'num': '2편', 'title': 'KRISO의 친환경대체\n연료해상실증선박?', 'img': 'assets/images/A_2.png'},
+  {
+    'num': '2편',
+    'title': 'KRISO의 친환경대체\n연료해상실증선박?',
+    'img': 'assets/images/A_2.png',
+  },
   {'num': '3편', 'title': 'KRISO의\n해양그린수소?', 'img': 'assets/images/A_3.png'},
   {'num': '4편', 'title': 'KRISO의\n전기추진선박?', 'img': 'assets/images/A_4.png'},
   {'num': '5편', 'title': '해양생물을 괴롭히는\n선박소음 !?', 'img': 'assets/images/A_5.png'},
-  {'num': '6편', 'title': '심해에서도 로봇이\n활용되고 있다는 사실', 'img': 'assets/images/A_6.png'},
-  {'num': '7편', 'title': '바다 위의 테슬라?\n자율운항선박\n쉽게 알려드림', 'img': 'assets/images/A_7.png'},
+  {
+    'num': '6편',
+    'title': '심해에서도 로봇이\n활용되고 있다는 사실',
+    'img': 'assets/images/A_6.png',
+  },
+  {
+    'num': '7편',
+    'title': '바다 위의 테슬라?\n자율운항선박\n쉽게 알려드림',
+    'img': 'assets/images/A_7.png',
+  },
   {'num': '8편~9편', 'title': '질문에 답하다', 'img': 'assets/images/A_8.png'},
-  {'num': '10편', 'title': "'꿈의 항로'\n북극이 현실로!\n지금 상황 총정리", 'img': 'assets/images/A_9.png'},
+  {
+    'num': '10편',
+    'title': "'꿈의 항로'\n북극이 현실로!\n지금 상황 총정리",
+    'img': 'assets/images/A_9.png',
+  },
 ];
 
 final List<Map<String, String>> seriesB = [
@@ -653,31 +685,73 @@ final List<Map<String, String>> seriesB = [
   {'num': '2편', 'title': '벚꽃운동회\n현장 속으로', 'img': 'assets/images/B_2.png'},
   {'num': '3편', 'title': '책향기 동아리의\n전통시장 탐방', 'img': 'assets/images/B_3.png'},
   {'num': '4편', 'title': '선박해양플랜트연구소\n밸런스게임', 'img': 'assets/images/B_4.png'},
-  {'num': '5편', 'title': '해양플랜트 서비스산업\n아이디어 경진대회', 'img': 'assets/images/B_5.png'},
+  {
+    'num': '5편',
+    'title': '해양플랜트 서비스산업\n아이디어 경진대회',
+    'img': 'assets/images/B_5.png',
+  },
   {'num': '6편', 'title': 'KRISO\n해양과학카페', 'img': 'assets/images/B_6.png'},
   {'num': '7편', 'title': '크리소의 동호회를\n소개합니다!', 'img': 'assets/images/B_7.png'},
-  
 ];
 
 final List<Map<String, String>> seriesC = [
-  {'num': '1편', 'title': '배가 스스로 운전하면,\n우리는 뭐해요?', 'img': 'assets/images/C_1.png'},
-  {'num': '2편', 'title': '거제의 숨은 보물!\n해양플랜트산업지원센터\n소개', 'img': 'assets/images/C_2.png'},
-  {'num': '3편', 'title': '구조디지털 트윈으로\n20년 후 해양플랜트 상\n태를 알 수 있다', 'img': 'assets/images/C_3.png'},
-  {'num': '4편', 'title': '바다에서\n초고속 무선통신이\n가능하다?!', 'img': 'assets/images/C_4.png'},
+  {
+    'num': '1편',
+    'title': '배가 스스로 운전하면,\n우리는 뭐해요?',
+    'img': 'assets/images/C_1.png',
+  },
+  {
+    'num': '2편',
+    'title': '거제의 숨은 보물!\n해양플랜트산업지원센터\n소개',
+    'img': 'assets/images/C_2.png',
+  },
+  {
+    'num': '3편',
+    'title': '구조디지털 트윈으로\n20년 후 해양플랜트 상\n태를 알 수 있다',
+    'img': 'assets/images/C_3.png',
+  },
+  {
+    'num': '4편',
+    'title': '바다에서\n초고속 무선통신이\n가능하다?!',
+    'img': 'assets/images/C_4.png',
+  },
   {'num': '5편', 'title': '지금 전기추진\n차도선은?', 'img': 'assets/images/C_5.png'},
   {'num': '6편', 'title': '해양에너지?\n해양구조물?', 'img': 'assets/images/C_6.png'},
   {'num': '7편', 'title': '자율운항선박\n궁금해?', 'img': 'assets/images/C_7.png'},
-  {'num': '8편', 'title': 'KRISO 신입사원 인터뷰\n크리소 입사했소!\n어떻게 입사했소?', 'img': 'assets/images/C_8.png'},
-  {'num': '9편', 'title': '실패를 두려워 하지 않는\n올해의 KRISO인\n홍사영 책임연구원', 'img': 'assets/images/C_9.png'},
-  {'num': '10편', 'title': '해양플랜트산업지원센터\n거세 센터에서는\n무슨일을 할까?1편', 'img': 'assets/images/C_10.png'},
-  {'num': '11편', 'title': '해양플랜트산업지원센터\n거세 센터에서는\n무슨일을 할까?2편', 'img': 'assets/images/C_11.png'},
-  
+  {
+    'num': '8편',
+    'title': 'KRISO 신입사원 인터뷰\n크리소 입사했소!\n어떻게 입사했소?',
+    'img': 'assets/images/C_8.png',
+  },
+  {
+    'num': '9편',
+    'title': '실패를 두려워 하지 않는\n올해의 KRISO인\n홍사영 책임연구원',
+    'img': 'assets/images/C_9.png',
+  },
+  {
+    'num': '10편',
+    'title': '해양플랜트산업지원센터\n거세 센터에서는\n무슨일을 할까?1편',
+    'img': 'assets/images/C_10.png',
+  },
+  {
+    'num': '11편',
+    'title': '해양플랜트산업지원센터\n거세 센터에서는\n무슨일을 할까?2편',
+    'img': 'assets/images/C_11.png',
+  },
 ];
 
 final List<Map<String, String>> seriesD = [
   {'num': '1편', 'title': 'KRISO 설립\n50주년 기념영상', 'img': 'assets/images/D_1.png'},
-  {'num': '2편', 'title': 'KRISO 50년 성과\n및 비전 선포 영상', 'img': 'assets/images/D_2.png'},
-  {'num': '3편', 'title': '선박해양플랜트연구소\n홍보 및 브랜드 영상', 'img': 'assets/images/D_3.png'},
+  {
+    'num': '2편',
+    'title': 'KRISO 50년 성과\n및 비전 선포 영상',
+    'img': 'assets/images/D_2.png',
+  },
+  {
+    'num': '3편',
+    'title': '선박해양플랜트연구소\n홍보 및 브랜드 영상',
+    'img': 'assets/images/D_3.png',
+  },
   {'num': '4편', 'title': '해양플랜트산업지원센터\n- 거제', 'img': 'assets/images/D_4.png'},
   {'num': '5편', 'title': '해수에너지연구센터\n- 고성', 'img': 'assets/images/D_5.png'},
   {'num': '6편', 'title': '자율운항선박실증연구센터\n- 울산', 'img': 'assets/images/D_6.png'},

@@ -106,7 +106,7 @@ class _ReadyViewState extends State<ReadyView> {
                                 style: TextStyle(
                                   color: Colors.black,
                                   fontSize: bodyFontSize,
-                                  fontWeight: FontWeight.w900,
+                                  fontWeight: FontWeight.w500,
                                   height: 1.35,
                                 ),
                               ),
@@ -119,7 +119,7 @@ class _ReadyViewState extends State<ReadyView> {
                                 style: TextStyle(
                                   color: Colors.black,
                                   fontSize: highlightFontSize,
-                                  fontWeight: FontWeight.w900,
+                                  fontWeight: FontWeight.w500,
                                   height: 1.15,
                                 ),
                               ),
@@ -145,7 +145,7 @@ class _ReadyViewState extends State<ReadyView> {
                               _submitting ? '등록 중...' : '시작하기',
                               style: TextStyle(
                                 fontSize: (width * 0.023).clamp(24.0, 32.0),
-                                fontWeight: FontWeight.w900,
+                                fontWeight: FontWeight.w500,
                                 height: 1,
                               ),
                             ),

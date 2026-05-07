@@ -24,7 +24,7 @@ class StepSingleRow extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 8.sp,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w500,
               color: HColor.black,
             ),
           ),

@@ -169,7 +169,7 @@ class _AgeOptionButton extends StatelessWidget {
             style: TextStyle(
               color: selected ? Colors.white : const Color(0xFF8C8C8C),
               fontSize: 18,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w500,
               height: 1,
             ),
           ),

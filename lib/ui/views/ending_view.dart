@@ -113,7 +113,7 @@ class _EndingViewState extends State<EndingView> {
                           style: TextStyle(
                             color: const Color(0xFF2E2E2E),
                             fontSize: titleSize,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: FontWeight.w500,
                             height: 1.18,
                           ),
                         ),
@@ -126,7 +126,7 @@ class _EndingViewState extends State<EndingView> {
                           style: TextStyle(
                             color: const Color(0xFF4F4F4F),
                             fontSize: bodySize,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w500,
                             height: 1.34,
                           ),
                         ),
@@ -171,7 +171,7 @@ class _EndingViewState extends State<EndingView> {
                           '닫기',
                           style: TextStyle(
                             fontSize: (width * 0.024).clamp(20.0, 28.0),
-                            fontWeight: FontWeight.w900,
+                            fontWeight: FontWeight.w500,
                             height: 1,
                           ),
                         ),

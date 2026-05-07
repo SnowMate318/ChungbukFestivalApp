@@ -30,9 +30,7 @@ class SurveyProgressBar extends StatelessWidget {
             height: 3.h,
             margin: EdgeInsets.symmetric(horizontal: 1.5.w),
             decoration: BoxDecoration(
-              color: isActive
-                  ? HColor.blue1
-                  : HColor.gray3.withOpacity(0.3),
+              color: isActive ? HColor.blue1 : HColor.gray3.withOpacity(0.3),
               borderRadius: BorderRadius.circular(6.r),
             ),
           );

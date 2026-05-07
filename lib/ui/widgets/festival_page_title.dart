@@ -19,7 +19,7 @@ class FestivalPageTitle extends StatelessWidget {
           style: TextStyle(
             color: Colors.black,
             fontSize: fontSize(constraints.maxWidth),
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w500,
             height: 1.15,
           ),
         );

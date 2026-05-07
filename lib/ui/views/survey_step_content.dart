@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,13 +17,11 @@ class SurveyStepContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 10.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-
           // ===== STEP 라벨 =====
           if (step.id != 'step2-2' && step.id != 'step2-3')
             Text(
@@ -32,11 +29,10 @@ class SurveyStepContent extends StatelessWidget {
               style: TextStyle(
                 color: HColor.black,
                 fontSize: 5.sp,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
             ),
 
-          
           SizedBox(height: 8.h),
 
           // ===== 진행도 바 =====
@@ -59,8 +55,6 @@ class SurveyStepContent extends StatelessWidget {
               ),
             ),
           ),
-
-
 
           // ===== 하단 버튼 =====
           if (!_shouldHideBottomButtons(step))

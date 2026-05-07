@@ -28,13 +28,7 @@ class HomeView extends GetView<HomeController> {
         ),
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildTop(),
-            _buildMiddle(),
-            _buildBottom(),
-          ],
-        ),
+        child: Column(children: [_buildTop(), _buildMiddle(), _buildBottom()]),
       ),
     );
   }

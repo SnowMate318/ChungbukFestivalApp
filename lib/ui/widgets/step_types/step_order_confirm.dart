@@ -7,7 +7,6 @@ import '../../controllers/survey_controller.dart';
 import '../../../config/style.dart';
 import '../../widgets/survey_progress_bar.dart';
 
-
 class StepOrderConfirm extends StatelessWidget {
   final SurveyStepModel step;
 
@@ -63,7 +62,7 @@ class StepOrderConfirm extends StatelessWidget {
             //                           '${index + 1}. ${selectedList[index]}',
             //                           style: TextStyle(
             //                             fontSize: 6.sp,
-            //                             fontWeight: FontWeight.w600,
+            //                             fontWeight: FontWeight.w500,
             //                             color: HColor.black,
             //                           ),
             //                         ),
@@ -100,7 +99,6 @@ class StepOrderConfirm extends StatelessWidget {
             //     }),
             //   ),
             // ),
-
             Expanded(
               flex: 10,
               child: Container(
@@ -141,16 +139,19 @@ class StepOrderConfirm extends StatelessWidget {
                                   ...List.generate(
                                     selectedList.length,
                                     (index) => Padding(
-                                      padding: EdgeInsets.symmetric(vertical: 16.h),
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 16.h,
+                                      ),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Expanded(
                                             child: Text(
                                               '${index + 1}. ${selectedList[index]}',
                                               style: TextStyle(
                                                 fontSize: 6.sp,
-                                                fontWeight: FontWeight.w600,
+                                                fontWeight: FontWeight.w500,
                                                 color: HColor.black,
                                               ),
                                               overflow: TextOverflow.ellipsis,
@@ -165,7 +166,8 @@ class StepOrderConfirm extends StatelessWidget {
                                             padding: EdgeInsets.zero,
                                             constraints: const BoxConstraints(),
                                             onPressed: () {
-                                              uiController.selectedTitles.removeAt(index);
+                                              uiController.selectedTitles
+                                                  .removeAt(index);
                                             },
                                           ),
                                         ],
@@ -181,9 +183,12 @@ class StepOrderConfirm extends StatelessWidget {
 
                           // 🔹 하단 수량 표시 (항상 고정)
                           Container(
-                            width: 160.w,  // ✅ 너비 제어
+                            width: 160.w, // ✅ 너비 제어
                             height: 60.h, // ✅ 높이 제어
-                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12.w,
+                              vertical: 6.h,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(10.r),
@@ -204,7 +209,7 @@ class StepOrderConfirm extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 5.sp,
                                     color: HColor.gray3,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                                 Text(
@@ -212,13 +217,12 @@ class StepOrderConfirm extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 5.sp,
                                     color: HColor.black,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],
                             ),
-                          )
-
+                          ),
                         ],
                       ),
                     ],
@@ -226,10 +230,6 @@ class StepOrderConfirm extends StatelessWidget {
                 }),
               ),
             ),
-
-
-
-
 
             SizedBox(width: 5.w),
 
@@ -252,7 +252,7 @@ class StepOrderConfirm extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 6.sp,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w500,
                           color: HColor.black,
                         ),
                       ),
@@ -261,14 +261,13 @@ class StepOrderConfirm extends StatelessWidget {
 
                     const SurveyProgressBar(),
                     SizedBox(height: 24.h),
-                    
 
                     Text(
                       '콘텐츠 주문 완료를 위해\n주문 내역을 확인해주세요',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 8.sp,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w500,
                         color: HColor.black,
                       ),
                     ),
@@ -281,12 +280,14 @@ class StepOrderConfirm extends StatelessWidget {
                         children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end, // ✅ Row도 하단 기준 정렬
+                            crossAxisAlignment:
+                                CrossAxisAlignment.end, // ✅ Row도 하단 기준 정렬
                             children: [
                               // 🔹 왼쪽 버튼 세트
                               Column(
                                 mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.end, // ✅ 세로 버튼도 하단 정렬
+                                mainAxisAlignment:
+                                    MainAxisAlignment.end, // ✅ 세로 버튼도 하단 정렬
                                 children: [
                                   OutlinedButton(
                                     onPressed: () {
@@ -296,7 +297,9 @@ class StepOrderConfirm extends StatelessWidget {
                                       backgroundColor: HColor.gray2,
                                       minimumSize: Size(45.w, 60.h),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(6.r),
+                                        borderRadius: BorderRadius.circular(
+                                          6.r,
+                                        ),
                                       ),
                                       side: BorderSide.none,
                                     ),
@@ -305,7 +308,7 @@ class StepOrderConfirm extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 6.sp,
                                         color: HColor.white,
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ),
@@ -318,7 +321,9 @@ class StepOrderConfirm extends StatelessWidget {
                                       backgroundColor: HColor.gray2,
                                       minimumSize: Size(45.w, 60.h),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(6.r),
+                                        borderRadius: BorderRadius.circular(
+                                          6.r,
+                                        ),
                                       ),
                                       side: BorderSide.none,
                                     ),
@@ -327,7 +332,7 @@ class StepOrderConfirm extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 6.sp,
                                         color: HColor.white,
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ),
@@ -338,8 +343,11 @@ class StepOrderConfirm extends StatelessWidget {
                               // 🔹 오른쪽 주문하기 버튼
                               ElevatedButton(
                                 onPressed: () {
-                                  print('✅ 주문 내용: ${uiController.selectedTitles}');
-                                  surveyController.answers['step2-2'] = uiController.selectedTitles;
+                                  print(
+                                    '✅ 주문 내용: ${uiController.selectedTitles}',
+                                  );
+                                  surveyController.answers['step2-2'] =
+                                      uiController.selectedTitles;
                                   uiController.onNext('step2-4');
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -354,7 +362,7 @@ class StepOrderConfirm extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 7.sp,
                                     color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ),
@@ -363,8 +371,6 @@ class StepOrderConfirm extends StatelessWidget {
                         ],
                       ),
                     ),
-
-
                   ],
                 ),
               ),
