@@ -126,13 +126,13 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
     return '앱 내 브라우저에서는 카메라 접근이 제한될 수 있어요. 가능하면 Safari 또는 Chrome에서 직접 열어 주세요.';
   }
 
-  Future<void> _handleDetectedQrCode(
+  Future<bool> _handleDetectedQrCode(
     String rawValue,
     FestivalUser user,
     Map<String, SeedItem> seedByUid,
   ) async {
     if (_handlingDetectedCode || !_isScanning) {
-      return;
+      return false;
     }
 
     _handlingDetectedCode = true;
@@ -144,7 +144,7 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
             _scanMessage = '이미 제출완료되어 QR 적립을 추가할 수 없어요.';
           });
         }
-        return;
+        return true;
       }
 
       final rawSeedUid = rawValue.trim();
@@ -159,7 +159,7 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
           });
         }
         await Future<void>.delayed(const Duration(milliseconds: 900));
-        return;
+        return false;
       }
 
       if (seed == null) {
@@ -169,13 +169,15 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
           });
         }
         await Future<void>.delayed(const Duration(milliseconds: 900));
-        return;
+        return false;
       }
 
       if (await _scanBooth(seed, user) && mounted) {
         setState(() => _isScanning = false);
+        return true;
       } else {
         await Future<void>.delayed(const Duration(milliseconds: 900));
+        return false;
       }
     } finally {
       _handlingDetectedCode = false;
@@ -1043,7 +1045,7 @@ class ScannerPanel extends StatefulWidget {
   final int participantLimit;
   final String scanMessage;
   final VoidCallback onClose;
-  final ValueChanged<String> onCodeDetected;
+  final Future<bool> Function(String rawValue) onCodeDetected;
   final VoidCallback onRetry;
 
   @override
@@ -1137,7 +1139,13 @@ class _ScannerPanelState extends State<ScannerPanel>
       if (!kIsWeb) {
         await controller.pauseCamera();
       }
-      widget.onCodeDetected(rawValue);
+      final handled = await widget.onCodeDetected(rawValue);
+      if (!handled && mounted) {
+        _didHandleScan = false;
+        if (!kIsWeb) {
+          await controller.resumeCamera();
+        }
+      }
     });
   }
 

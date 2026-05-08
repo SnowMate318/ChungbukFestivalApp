@@ -351,6 +351,118 @@ class FestivalFirestoreService {
     }, SetOptions(merge: true));
   }
 
+  Future<void> deleteUserByPhoneNumber(String phoneNumber) async {
+    final normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
+    if (normalizedPhoneNumber.length < 10) {
+      throw const FestivalAdminException('삭제할 휴대폰 번호를 다시 확인해 주세요.');
+    }
+
+    final userDocs = <String, QueryDocumentSnapshot<Map<String, dynamic>>>{};
+    await _addQueryDocs(
+      userDocs,
+      _users.where('phoneNumber', isEqualTo: normalizedPhoneNumber),
+    );
+    await _addQueryDocs(
+      userDocs,
+      _users.where('phone_number', isEqualTo: normalizedPhoneNumber),
+    );
+
+    final users = userDocs.values.map(FestivalUser.fromSnapshot).toList();
+    final phoneUniqueDocs = <String, DocumentReference<Map<String, dynamic>>>{};
+    await _addExistingDoc(
+      phoneUniqueDocs,
+      _uniquePhoneNumbers.doc(_uniqueKey(normalizedPhoneNumber)),
+    );
+    await _addQueryRefs(
+      phoneUniqueDocs,
+      _uniquePhoneNumbers.where('value', isEqualTo: normalizedPhoneNumber),
+    );
+
+    final userUids = <String>{
+      for (final user in users) user.uid,
+    };
+    for (final ref in phoneUniqueDocs.values) {
+      final uid = _asString((await ref.get()).data()?['uid']);
+      if (uid.isNotEmpty) {
+        userUids.add(uid);
+      }
+    }
+
+    for (final uid in userUids) {
+      await _addQueryRefs(
+        phoneUniqueDocs,
+        _uniquePhoneNumbers.where('uid', isEqualTo: uid),
+      );
+    }
+
+    final nicknameUniqueDocs =
+        <String, DocumentReference<Map<String, dynamic>>>{};
+    for (final user in users) {
+      await _addExistingDoc(
+        nicknameUniqueDocs,
+        _uniqueNicknames.doc(_uniqueKey(user.nickname)),
+      );
+    }
+    for (final uid in userUids) {
+      await _addQueryRefs(
+        nicknameUniqueDocs,
+        _uniqueNicknames.where('uid', isEqualTo: uid),
+      );
+    }
+
+    final smsDocs = <String, DocumentReference<Map<String, dynamic>>>{};
+    await _addQueryRefs(
+      smsDocs,
+      _smsRequests.where('receiver', isEqualTo: normalizedPhoneNumber),
+    );
+    await _addQueryRefs(
+      smsDocs,
+      _smsRequests.where('phoneNumber', isEqualTo: normalizedPhoneNumber),
+    );
+    for (final uid in userUids) {
+      await _addQueryRefs(smsDocs, _smsRequests.where('uid', isEqualTo: uid));
+    }
+
+    final refsToDelete = <String, DocumentReference<Map<String, dynamic>>>{
+      for (final doc in userDocs.values) doc.reference.path: doc.reference,
+      ...phoneUniqueDocs,
+      ...nicknameUniqueDocs,
+      ...smsDocs,
+    };
+
+    final highlightedSnapshot = await _highlightSettings.get();
+    final highlightedData = highlightedSnapshot.data();
+    final highlightedUid = _asString(highlightedData?['userUid']);
+    final highlightedPhone = normalizePhoneNumber(
+      _asString(highlightedData?['phoneNumber']),
+    );
+    if (highlightedSnapshot.exists &&
+        (userUids.contains(highlightedUid) ||
+            highlightedPhone == normalizedPhoneNumber)) {
+      refsToDelete[_highlightSettings.path] = _highlightSettings;
+    }
+
+    if (refsToDelete.isEmpty) {
+      throw const FestivalAdminException('삭제할 참여자 정보를 찾을 수 없습니다.');
+    }
+
+    final removedSeedTotal = users.fold<int>(
+      0,
+      (total, user) => total + user.seedCount,
+    );
+    final batch = _db.batch();
+    for (final ref in refsToDelete.values) {
+      batch.delete(ref);
+    }
+    if (removedSeedTotal > 0) {
+      batch.set(_summaryMetrics, {
+        'totalSeedCount': FieldValue.increment(-removedSeedTotal),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+    await batch.commit();
+  }
+
   Future<void> createSeed({
     required String seedName,
     int seedValue = 1,
@@ -652,6 +764,36 @@ class FestivalFirestoreService {
           ),
         ),
     };
+  }
+
+  Future<void> _addExistingDoc(
+    Map<String, DocumentReference<Map<String, dynamic>>> refs,
+    DocumentReference<Map<String, dynamic>> ref,
+  ) async {
+    final snapshot = await ref.get();
+    if (snapshot.exists) {
+      refs[ref.path] = ref;
+    }
+  }
+
+  Future<void> _addQueryDocs(
+    Map<String, QueryDocumentSnapshot<Map<String, dynamic>>> docs,
+    Query<Map<String, dynamic>> query,
+  ) async {
+    final snapshot = await query.get();
+    for (final doc in snapshot.docs) {
+      docs[doc.reference.path] = doc;
+    }
+  }
+
+  Future<void> _addQueryRefs(
+    Map<String, DocumentReference<Map<String, dynamic>>> refs,
+    Query<Map<String, dynamic>> query,
+  ) async {
+    final snapshot = await query.get();
+    for (final doc in snapshot.docs) {
+      refs[doc.reference.path] = doc.reference;
+    }
   }
 
   String normalizePhoneNumber(String phoneNumber) {
