@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:greenfestival/data/models/festival_admin_models.dart';
@@ -29,7 +30,6 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
   bool _isScanning = false;
   bool _handlingDetectedCode = false;
   int _scannerSessionId = 0;
-  String _scanMessage = 'QR 코드를 스캔하면 부스 방문이 바로 등록돼요.';
 
   void _openScanner(FestivalUser user) {
     if (_saving) {
@@ -37,16 +37,13 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
     }
 
     if (user.lastSubmittedAt != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이미 제출완료되어 QR 적립을 추가할 수 없어요.')),
-      );
+      unawaited(_showQrErrorDialog('이미 제출완료되어 QR 적립을 추가할 수 없어요.'));
       return;
     }
 
     setState(() {
       _isScanning = true;
       _scannerSessionId += 1;
-      _scanMessage = _defaultScanMessage();
     });
   }
 
@@ -77,53 +74,55 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
     );
   }
 
-  String _defaultScanMessage() {
-    final blockedReason = _webCameraBlockReason();
-    if (blockedReason != null) {
-      return 'QR 코드 오류.';
-    }
+  Future<void> _showQrErrorDialog(String message) async {
+    if (!mounted) return;
 
-    final webHint = _webInAppBrowserHint();
-    if (webHint != null) {
-      return 'QR 코드 오류';
-    }
-
-    return 'QR 코드를 스캔하면 부스 방문이 바로 등록돼요.';
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('QR 코드 오류'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
   }
 
-  void _retryScanner() {
-    setState(() {
-      _scannerSessionId += 1;
-      _scanMessage = _defaultScanMessage();
-    });
+  String _seedUpdateErrorMessage(Object error) {
+    if (_isNetworkError(error)) {
+      return '네트워크 연결이 불안정해서 씨앗 적립에 실패했어요. 연결을 확인한 뒤 다시 시도해 주세요.';
+    }
+
+    return '예상하지 못한 오류가 발생했어요. 다시 시도해 주세요.';
   }
 
-  String? _webCameraBlockReason() {
-    if (!_webCameraContext.isWeb) {
-      return null;
+  String _submitErrorMessage(Object error) {
+    if (_isNetworkError(error)) {
+      return '네트워크 연결이 불안정해서 제출에 실패했어요. 연결을 확인한 뒤 다시 시도해 주세요.';
     }
 
-    if (!_webCameraContext.isSecureContext) {
-      return '웹에서는 https 주소 또는 localhost에서만 카메라를 사용할 수 있어요.';
-    }
-
-    if (!_webCameraContext.hasMediaDevices) {
-      return '이 브라우저에서는 카메라 접근 API를 사용할 수 없어요.';
-    }
-
-    if (_webCameraContext.isInIframe) {
-      return '현재 페이지가 다른 화면 안에 포함되어 있어서 카메라 권한이 차단될 수 있어요. 새 탭에서 직접 열어 주세요.';
-    }
-
-    return null;
+    return '예상하지 못한 오류가 발생했어요. 다시 시도해 주세요.';
   }
 
-  String? _webInAppBrowserHint() {
-    if (!_webCameraContext.isWeb || !_webCameraContext.isInAppBrowser) {
-      return null;
+  bool _isNetworkError(Object error) {
+    if (error is FirebaseException) {
+      final code = error.code.toLowerCase();
+      return code == 'unavailable' ||
+          code == 'deadline-exceeded' ||
+          code == 'network-request-failed';
     }
 
-    return '앱 내 브라우저에서는 카메라 접근이 제한될 수 있어요. 가능하면 Safari 또는 Chrome에서 직접 열어 주세요.';
+    final message = error.toString().toLowerCase();
+    return message.contains('network') ||
+        message.contains('offline') ||
+        message.contains('unavailable') ||
+        message.contains('deadline-exceeded') ||
+        message.contains('failed to fetch') ||
+        message.contains('converted future');
   }
 
   Future<bool> _handleDetectedQrCode(
@@ -138,12 +137,8 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
     _handlingDetectedCode = true;
     try {
       if (user.lastSubmittedAt != null) {
-        if (mounted) {
-          setState(() {
-            _isScanning = false;
-            _scanMessage = '이미 제출완료되어 QR 적립을 추가할 수 없어요.';
-          });
-        }
+        await _showQrErrorDialog('이미 제출완료되어 QR 적립을 추가할 수 없어요.');
+        if (mounted) setState(() => _isScanning = false);
         return true;
       }
 
@@ -153,22 +148,12 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
           seedByUid[rawSeedUid] ??
           (payload == null ? null : seedByUid[payload.seedUid]);
       if (seed == null && payload == null) {
-        if (mounted) {
-          setState(() {
-            _scanMessage = '인식한 QR 코드가 부스 등록용 형식이 아니에요.';
-          });
-        }
-        await Future<void>.delayed(const Duration(milliseconds: 900));
+        await _showQrErrorDialog('인식한 QR 코드가 부스 등록용 형식이 아니에요.');
         return false;
       }
 
       if (seed == null) {
-        if (mounted) {
-          setState(() {
-            _scanMessage = '등록되지 않은 부스 QR 코드예요. 최신 QR 코드인지 확인해 주세요.';
-          });
-        }
-        await Future<void>.delayed(const Duration(milliseconds: 900));
+        await _showQrErrorDialog('등록되지 않은 부스 QR 코드예요. 최신 QR 코드인지 확인해 주세요.');
         return false;
       }
 
@@ -176,7 +161,6 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
         setState(() => _isScanning = false);
         return true;
       } else {
-        await Future<void>.delayed(const Duration(milliseconds: 900));
         return false;
       }
     } finally {
@@ -200,7 +184,7 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('$error')));
+      ).showSnackBar(SnackBar(content: Text(_submitErrorMessage(error))));
     } finally {
       if (mounted) {
         setState(() => _saving = false);
@@ -318,9 +302,7 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
     final limit = math.max(1, user.participantCount);
     final currentCount = _counts[seed.uid] ?? 0;
     if (currentCount >= limit) {
-      setState(() {
-        _scanMessage = '${seed.name} 부스는 최대 $limit회까지만 적립할 수 있어요.';
-      });
+      await _showQrErrorDialog('${seed.name} 부스는 최대 $limit회까지만 적립할 수 있어요.');
       return false;
     }
 
@@ -338,13 +320,10 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
         _counts
           ..clear()
           ..addAll(nextCounts);
-        _scanMessage = '${seed.name} 부스가 ${seed.seedValue}SEED 적립되었어요.';
       });
       return true;
     } catch (error) {
-      if (mounted) {
-        setState(() => _scanMessage = '$error');
-      }
+      await _showQrErrorDialog(_seedUpdateErrorMessage(error));
       return false;
     }
   }
@@ -414,7 +393,6 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
               (sum, item) => sum + item.totalSeeds,
             );
             final isSubmitted = user.lastSubmittedAt != null || _saving;
-            final webCameraBlockReason = _webCameraBlockReason();
 
             return Scaffold(
               backgroundColor: Colors.white,
@@ -439,12 +417,6 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
                                           key: ValueKey(
                                             'scanner-$_scannerSessionId',
                                           ),
-                                          blockedReason: webCameraBlockReason,
-                                          participantLimit: math.max(
-                                            1,
-                                            user.participantCount,
-                                          ),
-                                          scanMessage: _scanMessage,
                                           onClose: _closeScanner,
                                           onCodeDetected: (rawValue) =>
                                               _handleDetectedQrCode(
@@ -452,7 +424,6 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
                                                 user,
                                                 scannerSeedByUid,
                                               ),
-                                          onRetry: _retryScanner,
                                         )
                                       : MainPanel(
                                           key: const ValueKey('main'),
@@ -1032,21 +1003,13 @@ class BoothSeedCard extends StatelessWidget {
 
 class ScannerPanel extends StatefulWidget {
   const ScannerPanel({
-    required this.blockedReason,
-    required this.participantLimit,
-    required this.scanMessage,
     required this.onClose,
     required this.onCodeDetected,
-    required this.onRetry,
     super.key,
   });
 
-  final String? blockedReason;
-  final int participantLimit;
-  final String scanMessage;
   final VoidCallback onClose;
   final Future<bool> Function(String rawValue) onCodeDetected;
-  final VoidCallback onRetry;
 
   @override
   State<ScannerPanel> createState() => _ScannerPanelState();
@@ -1057,9 +1020,8 @@ class _ScannerPanelState extends State<ScannerPanel>
   qr_plus.QRViewController? _controller;
   StreamSubscription<qr_plus.Barcode>? _scanSubscription;
   Timer? _startupTimer;
-  String? _issueMessage;
+  bool _isShowingIssueDialog = false;
   bool _didHandleScan = false;
-  int _scannerGeneration = 0;
 
   @override
   void initState() {
@@ -1077,7 +1039,7 @@ class _ScannerPanelState extends State<ScannerPanel>
 
     switch (state) {
       case AppLifecycleState.resumed:
-        if (_issueMessage == null) {
+        if (!_isShowingIssueDialog) {
           unawaited(controller.resumeCamera());
         }
       case AppLifecycleState.detached:
@@ -1107,27 +1069,39 @@ class _ScannerPanelState extends State<ScannerPanel>
 
   void _armStartupTimer() {
     _startupTimer?.cancel();
-    _startupTimer = Timer(const Duration(seconds: 8), () {
-      if (!mounted || _controller != null || widget.blockedReason != null) {
+    _startupTimer = Timer(const Duration(seconds: 10), () {
+      if (!mounted || _controller != null) {
         return;
       }
 
-      setState(() {
-        _issueMessage = '카메라를 시작하지 못했어요. 다시 시도해 주세요.';
-      });
+      unawaited(_showScannerIssueDialog('카메라를 시작하지 못했어요. 다시 시도해 주세요.'));
     });
+  }
+
+  Future<void> _showScannerIssueDialog(String message) async {
+    if (!mounted || _isShowingIssueDialog) return;
+
+    _isShowingIssueDialog = true;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('QR 코드 오류'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+    _isShowingIssueDialog = false;
   }
 
   void _onQrViewCreated(qr_plus.QRViewController controller) {
     _startupTimer?.cancel();
     _controller = controller;
     _scanSubscription?.cancel();
-
-    if (mounted) {
-      setState(() {
-        _issueMessage = null;
-      });
-    }
 
     _scanSubscription = controller.scannedDataStream.listen((scanData) async {
       final rawValue = scanData.code?.trim() ?? '';
@@ -1154,39 +1128,10 @@ class _ScannerPanelState extends State<ScannerPanel>
     bool isGranted,
   ) {
     if (isGranted) {
-      setState(() {
-        _issueMessage = null;
-      });
       return;
     }
 
-    setState(() {
-      _issueMessage = '카메라 권한을 허용한 뒤 다시 시도해 주세요.';
-    });
-  }
-
-  Future<void> _restartScanner() async {
-    widget.onRetry();
-    final previousController = _controller;
-    final previousSubscription = _scanSubscription;
-    _controller = null;
-    _scanSubscription = null;
-    _startupTimer?.cancel();
-    await previousSubscription?.cancel();
-    if (!kIsWeb) {
-      await previousController?.pauseCamera();
-    }
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _didHandleScan = false;
-      _issueMessage = null;
-      _scannerGeneration += 1;
-    });
-    _armStartupTimer();
+    unawaited(_showScannerIssueDialog('카메라 권한을 허용한 뒤 다시 시도해 주세요.'));
   }
 
   @override
@@ -1239,65 +1184,21 @@ class _ScannerPanelState extends State<ScannerPanel>
                           aspectRatio: 1,
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: widget.blockedReason != null
-                                ? _ScannerErrorCard(
-                                    message: widget.blockedReason!,
-                                  )
-                                : _issueMessage != null
-                                ? _ScannerErrorCard(message: _issueMessage!)
-                                : ColoredBox(
-                                    color: const Color(0xff1f2d25),
-                                    child: qr_plus.QRView(
-                                      key: ValueKey(
-                                        'qr-view-$_scannerGeneration',
-                                      ),
-                                      onQRViewCreated: _onQrViewCreated,
-                                      onPermissionSet: _handlePermissionSet,
-                                      cameraFacing: qr_plus.CameraFacing.back,
-                                      formatsAllowed:
-                                          const <qr_plus.BarcodeFormat>[
-                                            qr_plus.BarcodeFormat.qrcode,
-                                          ],
-                                    ),
-                                  ),
+                            child: ColoredBox(
+                              color: const Color(0xff1f2d25),
+                              child: qr_plus.QRView(
+                                key: const ValueKey('qr-view'),
+                                onQRViewCreated: _onQrViewCreated,
+                                onPermissionSet: _handlePermissionSet,
+                                cameraFacing: qr_plus.CameraFacing.back,
+                                formatsAllowed: const <qr_plus.BarcodeFormat>[
+                                  qr_plus.BarcodeFormat.qrcode,
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        widget.scanMessage,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        '부스별 적립은 참여 인원 ${widget.participantLimit}명 기준으로 최대 ${widget.participantLimit}회까지 가능해요.',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Color(0xff5f6b60),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      if (widget.blockedReason == null &&
-                          _issueMessage != null) ...[
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: 132,
-                          height: 34,
-                          child: OutlinedActionButton(
-                            label: '다시 시도',
-                            onPressed: () async {
-                              widget.onRetry();
-                              await _restartScanner();
-                            },
-                          ),
-                        ),
-                      ],
                       const SizedBox(height: 14),
                     ],
                   ),
@@ -1307,34 +1208,6 @@ class _ScannerPanelState extends State<ScannerPanel>
           ),
         );
       },
-    );
-  }
-}
-
-class _ScannerErrorCard extends StatelessWidget {
-  const _ScannerErrorCard({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return ColoredBox(
-      color: const Color(0xff1f2d25),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              height: 1.4,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
