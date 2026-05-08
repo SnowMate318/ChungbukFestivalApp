@@ -125,6 +125,9 @@ class FestivalBoothSummaryRow {
     required this.seedUid,
     required this.boothName,
     required this.issuedSeedCount,
+    this.genderSeedCounts = const {},
+    this.ageSeedCounts = const {},
+    this.residenceSeedCounts = const {},
   });
 
   final String categoryUid;
@@ -132,6 +135,9 @@ class FestivalBoothSummaryRow {
   final String seedUid;
   final String boothName;
   final int issuedSeedCount;
+  final Map<String, int> genderSeedCounts;
+  final Map<String, int> ageSeedCounts;
+  final Map<String, int> residenceSeedCounts;
 }
 
 class FestivalUserSummaryRow {
@@ -203,15 +209,42 @@ List<FestivalBoothSummaryRow> buildFestivalBoothSummaryRows(
   final rows = catalog.seeds
       .where((seed) => _matchesBoothFilters(seed, filters.filters))
       .map((seed) {
-        final issuedSeedCount = reportUsers.fold<int>(0, (sum, user) {
-          return sum + _issuedSeedCountForUser(user, seed);
-        });
+        var issuedSeedCount = 0;
+        final genderSeedCounts = <String, int>{};
+        final ageSeedCounts = <String, int>{};
+        final residenceSeedCounts = <String, int>{};
+
+        for (final user in reportUsers) {
+          final userIssuedSeedCount = _issuedSeedCountForUser(user, seed);
+          if (userIssuedSeedCount <= 0) continue;
+
+          issuedSeedCount += userIssuedSeedCount;
+          _addSeedCount(
+            genderSeedCounts,
+            reportGenderLabel(user),
+            userIssuedSeedCount,
+          );
+          _addSeedCount(
+            ageSeedCounts,
+            reportAgeLabel(user),
+            userIssuedSeedCount,
+          );
+          _addSeedCount(
+            residenceSeedCounts,
+            reportResidenceLabel(user),
+            userIssuedSeedCount,
+          );
+        }
+
         return FestivalBoothSummaryRow(
           categoryUid: seed.categoryUid,
           categoryName: _resolvedCategoryName(seed),
           seedUid: seed.uid,
           boothName: seed.name,
           issuedSeedCount: issuedSeedCount,
+          genderSeedCounts: genderSeedCounts,
+          ageSeedCounts: ageSeedCounts,
+          residenceSeedCounts: residenceSeedCounts,
         );
       })
       .toList();
@@ -335,6 +368,11 @@ int _issuedSeedCountForUser(FestivalUser user, SeedItem seed) {
   final count = user.seedCounts[seed.uid] ?? 0;
   if (count <= 0) return 0;
   return count * normalizedSeedValue(seed.seedValue);
+}
+
+void _addSeedCount(Map<String, int> totals, String label, int count) {
+  final key = label.trim().isEmpty ? '-' : label.trim();
+  totals[key] = (totals[key] ?? 0) + count;
 }
 
 int _compareIndexedUsers(

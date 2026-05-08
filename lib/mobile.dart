@@ -25,15 +25,21 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
   final WebCameraContext _webCameraContext = getWebCameraContext();
   final Map<String, int> _counts = {};
   String? _loadedStamp;
-  bool _dirty = false;
   bool _saving = false;
   bool _isScanning = false;
   bool _handlingDetectedCode = false;
   int _scannerSessionId = 0;
   String _scanMessage = 'QR 코드를 스캔하면 부스 방문이 바로 등록돼요.';
 
-  void _openScanner() {
+  void _openScanner(FestivalUser user) {
     if (_saving) {
+      return;
+    }
+
+    if (user.lastSubmittedAt != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('이미 제출완료되어 QR 적립을 추가할 수 없어요.')),
+      );
       return;
     }
 
@@ -131,6 +137,16 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
 
     _handlingDetectedCode = true;
     try {
+      if (user.lastSubmittedAt != null) {
+        if (mounted) {
+          setState(() {
+            _isScanning = false;
+            _scanMessage = '이미 제출완료되어 QR 적립을 추가할 수 없어요.';
+          });
+        }
+        return;
+      }
+
       final rawSeedUid = rawValue.trim();
       final payload = SeedQrPayload.tryParse(rawSeedUid);
       final seed =
@@ -156,7 +172,7 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
         return;
       }
 
-      if (_scanBooth(seed, user) && mounted) {
+      if (await _scanBooth(seed, user) && mounted) {
         setState(() => _isScanning = false);
       } else {
         await Future<void>.delayed(const Duration(milliseconds: 900));
@@ -166,25 +182,18 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
     }
   }
 
-  Future<void> _submitSeedCounts(FestivalUser user) async {
-    if (_saving) return;
+  Future<void> _submitUser(FestivalUser user) async {
+    if (_saving || user.lastSubmittedAt != null) return;
 
     setState(() => _saving = true);
 
     try {
-      await _service.updateUserSeedCounts(
-        uid: user.uid,
-        seedCounts: _counts,
-        markSubmitted: true,
-      );
+      await _service.markUserSubmitted(uid: user.uid);
       if (!mounted) return;
-      setState(() {
-        _dirty = false;
-        _isScanning = false;
-      });
+      setState(() => _isScanning = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('시드 제출이 완료되었어요.')));
+      ).showSnackBar(const SnackBar(content: Text('제출이 완료되었어요.')));
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -200,13 +209,13 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
   void _syncCountsIfNeeded(FestivalUser user, SeedCatalog catalog) {
     final stamp =
         '${user.uid}-${user.updatedAt?.toIso8601String()}-${catalog.seeds.length}';
-    if (_dirty || _loadedStamp == stamp) return;
+    if (_loadedStamp == stamp) return;
     final participantLimit = user.participantCount < 1
         ? 1
         : user.participantCount;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _dirty || _loadedStamp == stamp) return;
+      if (!mounted || _loadedStamp == stamp) return;
 
       final nextCounts = <String, int>{};
       for (final seed in catalog.seeds) {
@@ -303,7 +312,7 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
         .toList();
   }
 
-  bool _scanBooth(SeedItem seed, FestivalUser user) {
+  Future<bool> _scanBooth(SeedItem seed, FestivalUser user) async {
     final limit = math.max(1, user.participantCount);
     final currentCount = _counts[seed.uid] ?? 0;
     if (currentCount >= limit) {
@@ -313,12 +322,29 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
       return false;
     }
 
-    setState(() {
-      _counts[seed.uid] = currentCount + 1;
-      _dirty = true;
-      _scanMessage = '${seed.name} 부스가 ${seed.seedValue}SEED 적립되었어요.';
-    });
-    return true;
+    final nextCounts = Map<String, int>.from(_counts)
+      ..[seed.uid] = currentCount + 1;
+
+    try {
+      await _service.updateUserSeedCounts(
+        uid: user.uid,
+        seedCounts: nextCounts,
+        requireUnsubmitted: true,
+      );
+      if (!mounted) return false;
+      setState(() {
+        _counts
+          ..clear()
+          ..addAll(nextCounts);
+        _scanMessage = '${seed.name} 부스가 ${seed.seedValue}SEED 적립되었어요.';
+      });
+      return true;
+    } catch (error) {
+      if (mounted) {
+        setState(() => _scanMessage = '$error');
+      }
+      return false;
+    }
   }
 
   Future<void> _openSubmitPage(FestivalUser user, int totalSeeds) async {
@@ -328,8 +354,8 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
           userName: user.nickname,
           phoneNumber: user.phoneNumber,
           totalSeeds: totalSeeds,
-          isSubmitted: (user.lastSubmittedAt != null && !_dirty) || _saving,
-          onSubmit: () => _submitSeedCounts(user),
+          isSubmitted: user.lastSubmittedAt != null || _saving,
+          onSubmit: () => _submitUser(user),
         ),
       ),
     );
@@ -385,8 +411,7 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
               0,
               (sum, item) => sum + item.totalSeeds,
             );
-            final isSubmitted =
-                (user.lastSubmittedAt != null && !_dirty) || _saving;
+            final isSubmitted = user.lastSubmittedAt != null || _saving;
             final webCameraBlockReason = _webCameraBlockReason();
 
             return Scaffold(
@@ -438,7 +463,8 @@ class _SeedStampTourPageState extends State<SeedStampTourPage> {
                                               .map((item) => item.totalSeeds)
                                               .toList(),
                                           isSubmitted: isSubmitted,
-                                          onOpenScanner: _openScanner,
+                                          onOpenScanner: () =>
+                                              _openScanner(user),
                                           onOpenSubmit: () =>
                                               _openSubmitPage(user, totalSeeds),
                                           onShowLeaflet: _showLeafletMessage,
@@ -770,7 +796,7 @@ class MainPanel extends StatelessWidget {
                 child: SeedSummaryHeader(
                   userName: userName,
                   totalSeeds: totalSeeds,
-                  onCollectSeed: onOpenScanner,
+                  onCollectSeed: isSubmitted ? null : onOpenScanner,
                 ),
               ),
               const SizedBox(height: 13),
@@ -844,7 +870,7 @@ class SeedSummaryHeader extends StatelessWidget {
 
   final String userName;
   final int totalSeeds;
-  final VoidCallback onCollectSeed;
+  final VoidCallback? onCollectSeed;
 
   @override
   Widget build(BuildContext context) {
@@ -1515,7 +1541,7 @@ class SubmitPage extends StatelessWidget {
                                             child: FilledActionButton(
                                               label: isSubmitted
                                                   ? '제출완료'
-                                                  : '시드 제출하기',
+                                                  : '제출하기',
                                               onPressed: isSubmitted
                                                   ? null
                                                   : () async {

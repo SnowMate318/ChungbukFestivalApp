@@ -563,7 +563,7 @@ class FestivalFirestoreService {
   Future<void> updateUserSeedCounts({
     required String uid,
     required Map<String, int> seedCounts,
-    bool markSubmitted = false,
+    bool requireUnsubmitted = false,
   }) async {
     final userRef = _users.doc(uid);
     final seedValueByUid = await _loadSeedValueByUid();
@@ -583,6 +583,10 @@ class FestivalFirestoreService {
       }
 
       final user = FestivalUser.fromSnapshot(userSnapshot);
+      if (requireUnsubmitted && user.lastSubmittedAt != null) {
+        throw const FestivalAdminException('이미 제출완료되어 QR 적립을 추가할 수 없어요.');
+      }
+
       final participantLimit = user.participantCount < 1
           ? 1
           : user.participantCount;
@@ -603,11 +607,7 @@ class FestivalFirestoreService {
       final diff = nextTotal - user.seedCount;
 
       if (_mapEquals(user.seedCounts, boundedSeedCounts)) {
-        final updates = <String, Object>{'updatedAt': serverNow};
-        if (markSubmitted) {
-          updates['lastSubmittedAt'] = serverNow;
-        }
-        transaction.update(userRef, updates);
+        transaction.update(userRef, {'updatedAt': serverNow});
         return;
       }
 
@@ -616,15 +616,29 @@ class FestivalFirestoreService {
         'seedCount': nextTotal,
         'updatedAt': serverNow,
       };
-      if (markSubmitted) {
-        updates['lastSubmittedAt'] = serverNow;
-      }
       transaction.update(userRef, updates);
 
       transaction.set(_summaryMetrics, {
         'totalSeedCount': FieldValue.increment(diff),
         'updatedAt': serverNow,
       }, SetOptions(merge: true));
+    });
+  }
+
+  Future<void> markUserSubmitted({required String uid}) async {
+    final userRef = _users.doc(uid);
+    final serverNow = FieldValue.serverTimestamp();
+
+    await _db.runTransaction<void>((transaction) async {
+      final userSnapshot = await transaction.get(userRef);
+      if (!userSnapshot.exists) {
+        throw const FestivalAdminException('등록된 참여자를 찾을 수 없습니다.');
+      }
+
+      transaction.update(userRef, {
+        'lastSubmittedAt': serverNow,
+        'updatedAt': serverNow,
+      });
     });
   }
 

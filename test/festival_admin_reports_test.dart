@@ -150,6 +150,42 @@ void main() {
       ]);
     });
 
+    test('groups booth seed totals by profile without participant count', () {
+      final catalog = _catalog();
+      final users = [
+        _user(
+          uid: 'u1',
+          nickname: '가람',
+          gender: 1,
+          ageGroup: 3,
+          residence: 1,
+          participantCount: 9,
+          seedCounts: {'s1': 1},
+        ),
+        _user(
+          uid: 'u2',
+          nickname: '나래',
+          gender: 2,
+          ageGroup: 4,
+          residence: 5,
+          participantCount: 7,
+          seedCounts: {'s1': 2},
+        ),
+      ];
+
+      final result = buildFestivalBoothSummaryRows(
+        users,
+        catalog,
+        const FestivalBoothReportFilters(),
+      );
+      final boothA = result.firstWhere((row) => row.seedUid == 's1');
+
+      expect(boothA.issuedSeedCount, 6);
+      expect(boothA.genderSeedCounts, {'남성': 2, '여성': 4});
+      expect(boothA.ageSeedCounts, {'20대': 2, '30대': 4});
+      expect(boothA.residenceSeedCounts, {'청주시 상당구': 2, '청주시 외 지역': 4});
+    });
+
     test('category summary is based on booth summary rows', () {
       final catalog = _catalog();
       final users = [
